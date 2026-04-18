@@ -6,7 +6,9 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build:mac": "electron-builder --mac dir"
+    "build:mac": "electron-builder --mac dir",
+    "install:mac": "node scripts/install-mac.js",
+    "setup:mac": "npm run build:mac && npm run install:mac"
   },
   "keywords": [
     "electron",
@@ -28,8 +30,10 @@
     },
     "files": [
       "electron/**/*",
+      "scripts/**/*",
       "src/**/*",
-      "package.json"
+      "package.json",
+      "README.md"
     ],
     "mac": {
       "category": "public.app-category.productivity",

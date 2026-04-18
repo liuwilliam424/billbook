@@ -56,8 +56,10 @@ textarea {
 }
 
 .sidebar-header {
-  padding: 28px 24px 20px;
+  -webkit-app-region: drag;
+  padding: 42px 24px 24px;
   border-bottom: 1px solid var(--line);
+  min-height: 188px;
 }
 
 .eyebrow,
@@ -124,6 +126,10 @@ textarea {
   display: flex;
   gap: 10px;
   margin-top: 18px;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
 }
 
 .button {
@@ -260,11 +266,13 @@ textarea {
 }
 
 .editor-toolbar {
+  -webkit-app-region: drag;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 22px;
+  min-height: 104px;
+  padding: 20px 0 26px;
 }
 
 .editor-subtitle {
