@@ -13,6 +13,12 @@ let isDirty = false;
 let watcher = null;
 let settingsCache = null;
 
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.quit();
+}
+
 function getSettingsPath() {
   return path.join(app.getPath("userData"), SETTINGS_FILE);
 }
@@ -379,6 +385,15 @@ async function watchJournalDirectory(rootDirectory) {
 }
 
 function createMainWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+
+    mainWindow.focus();
+    return;
+  }
+
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 920,
@@ -429,6 +444,16 @@ function createMainWindow() {
     mainWindow = null;
   });
 }
+
+app.on("second-instance", () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+
+    mainWindow.focus();
+  }
+});
 
 ipcMain.handle("settings:get", async () => {
   const settings = await loadSettings();
