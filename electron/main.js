@@ -5,7 +5,7 @@ const fsp = require("node:fs/promises");
 const path = require("node:path");
 
 const SETTINGS_FILE = "settings.json";
-const APP_TITLE = "Journal";
+const APP_TITLE = "Billbook";
 
 let mainWindow = null;
 let allowClose = false;

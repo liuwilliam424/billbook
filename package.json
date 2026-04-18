@@ -1,5 +1,5 @@
 {
-  "name": "dayleaf",
+  "name": "billbook",
   "version": "0.1.0",
   "description": "A local-first markdown journal for writing every day",
   "main": "electron/main.js",
@@ -13,7 +13,7 @@
     "journal",
     "markdown"
   ],
-  "productName": "Dayleaf",
+  "productName": "Billbook",
   "author": "William Liu",
   "license": "MIT",
   "devDependencies": {
@@ -21,8 +21,8 @@
     "electron-builder": "^26.8.1"
   },
   "build": {
-    "appId": "com.liuwilliam.dayleaf",
-    "productName": "Dayleaf",
+    "appId": "com.liuwilliam.billbook",
+    "productName": "Billbook",
     "directories": {
       "output": "dist"
     },
