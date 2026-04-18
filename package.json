@@ -1,0 +1,20 @@
+{
+  "name": "journal-app",
+  "version": "0.1.0",
+  "description": "Local-first Electron journal with Markdown-backed entries",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "keywords": [
+    "electron",
+    "journal",
+    "markdown"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^41.2.1"
+  }
+}

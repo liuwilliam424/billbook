@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Journal</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <p class="eyebrow">Markdown Journal</p>
+          <div class="sidebar-title-row">
+            <h1>Journal</h1>
+            <span id="save-status" class="status-pill">Saved</span>
+          </div>
+          <p id="directory-label" class="directory-label">Choose a journal folder to begin.</p>
+          <div class="sidebar-actions">
+            <button id="choose-folder-button" class="button button-secondary" type="button">
+              Choose Folder
+            </button>
+            <button id="new-entry-button" class="button button-primary" type="button">
+              New Entry
+            </button>
+          </div>
+        </div>
+
+        <div id="entries-tree" class="entries-tree"></div>
+      </aside>
+
+      <main class="editor-panel">
+        <div class="editor-toolbar">
+          <div class="editor-toolbar-copy">
+            <p class="editor-label">Current Entry</p>
+            <p id="editor-subtitle" class="editor-subtitle">Select an entry or create a new one.</p>
+          </div>
+          <div class="editor-toolbar-actions">
+            <span id="external-status" class="external-status" hidden>
+              External changes detected
+            </span>
+            <button id="save-button" class="button button-primary" type="button">
+              Save
+            </button>
+          </div>
+        </div>
+
+        <section id="empty-state" class="empty-state">
+          <div class="empty-state-card">
+            <p class="empty-kicker">Ready when you are</p>
+            <h2>Pick a folder and start your journal.</h2>
+            <p>
+              Entries are stored as Markdown files in the journal directory you choose, not inside
+              the app repo.
+            </p>
+            <button id="empty-state-button" class="button button-primary" type="button">
+              Choose Folder
+            </button>
+          </div>
+        </section>
+
+        <section id="editor-form" class="editor-form" hidden>
+          <label class="field-group" for="entry-date">
+            <span class="field-label">Date</span>
+            <input id="entry-date" class="text-input date-input" type="date" />
+          </label>
+
+          <label class="field-group" for="entry-title">
+            <span class="field-label">Title</span>
+            <input
+              id="entry-title"
+              class="text-input title-input"
+              type="text"
+              placeholder="Untitled"
+              autocomplete="off"
+            />
+          </label>
+
+          <label class="field-group field-grow" for="entry-content">
+            <span class="field-label">Content</span>
+            <textarea
+              id="entry-content"
+              class="content-input"
+              placeholder="Write in Markdown here..."
+              spellcheck="true"
+            ></textarea>
+          </label>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="confirm-dialog" class="confirm-dialog">
+      <form method="dialog" class="confirm-dialog-card">
+        <p id="confirm-title" class="confirm-title">Unsaved changes</p>
+        <p id="confirm-body" class="confirm-body">
+          Save your current work before continuing?
+        </p>
+        <div id="confirm-actions" class="confirm-actions"></div>
+      </form>
+    </dialog>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
