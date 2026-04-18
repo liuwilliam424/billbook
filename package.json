@@ -1,20 +1,41 @@
 {
-  "name": "journal-app",
+  "name": "dayleaf",
   "version": "0.1.0",
-  "description": "Local-first Electron journal with Markdown-backed entries",
+  "description": "A local-first markdown journal for writing every day",
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron ."
+    "dev": "electron .",
+    "build:mac": "electron-builder --mac dir"
   },
   "keywords": [
     "electron",
     "journal",
     "markdown"
   ],
-  "author": "",
+  "productName": "Dayleaf",
+  "author": "William Liu",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^41.2.1"
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.liuwilliam.dayleaf",
+    "productName": "Dayleaf",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dir"
+      ]
+    }
   }
 }
