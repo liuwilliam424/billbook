@@ -262,17 +262,22 @@ textarea {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 30px 36px;
+  padding: 0 36px 30px;
+}
+
+.editor-drag-strip {
+  -webkit-app-region: drag;
+  min-height: 34px;
+  flex: 0 0 34px;
 }
 
 .editor-toolbar {
-  -webkit-app-region: drag;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  min-height: 104px;
-  padding: 20px 0 26px;
+  min-height: 96px;
+  padding: 16px 0 26px;
 }
 
 .editor-subtitle {
