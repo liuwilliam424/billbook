@@ -13,12 +13,11 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="sidebar-header">
-          <p class="eyebrow">Markdown Journal</p>
+          <p class="eyebrow">Journal</p>
           <div class="sidebar-title-row">
             <h1>Billbook</h1>
             <span id="save-status" class="status-pill">Saved</span>
           </div>
-          <p id="directory-label" class="directory-label">Choose a journal folder to begin.</p>
           <div class="sidebar-actions">
             <button id="choose-folder-button" class="button button-secondary no-drag" type="button">
               Choose Folder
@@ -26,6 +25,10 @@
             <button id="new-entry-button" class="button button-primary no-drag" type="button">
               New Entry
             </button>
+          </div>
+          <div class="location-panel no-drag">
+            <p class="location-label">Saving To</p>
+            <p id="directory-label" class="directory-label">No folder selected</p>
           </div>
         </div>
 
@@ -50,14 +53,10 @@
         </div>
 
         <section id="empty-state" class="empty-state">
-          <div class="empty-state-card">
-            <p class="empty-kicker">Ready when you are</p>
-            <h2>Pick a folder and start your journal.</h2>
-            <p>
-              Entries are stored as Markdown files in the journal directory you choose, not inside
-              the app repo.
-            </p>
-            <button id="empty-state-button" class="button button-primary no-drag" type="button">
+          <div class="empty-state-copy">
+            <p id="empty-state-title" class="empty-state-title">No journal folder selected.</p>
+            <p id="empty-state-body" class="empty-state-body">Choose a folder to start.</p>
+            <button id="empty-state-button" class="button button-secondary no-drag" type="button">
               Choose Folder
             </button>
           </div>
@@ -102,6 +101,8 @@
         <div id="confirm-actions" class="confirm-actions"></div>
       </form>
     </dialog>
+
+    <div id="folder-toast" class="folder-toast" hidden></div>
 
     <script src="./renderer.js"></script>
   </body>

@@ -6,7 +6,8 @@ const state = {
   currentEntry: null,
   selectedFilePath: "",
   savedSnapshot: "",
-  hasExternalChanges: false
+  hasExternalChanges: false,
+  folderToastTimeoutId: null
 };
 
 const elements = {
@@ -21,14 +22,44 @@ const elements = {
   emptyState: document.querySelector("#empty-state"),
   editorSubtitle: document.querySelector("#editor-subtitle"),
   externalStatus: document.querySelector("#external-status"),
+  emptyStateTitle: document.querySelector("#empty-state-title"),
+  emptyStateBody: document.querySelector("#empty-state-body"),
   dateInput: document.querySelector("#entry-date"),
   titleInput: document.querySelector("#entry-title"),
   contentInput: document.querySelector("#entry-content"),
   confirmDialog: document.querySelector("#confirm-dialog"),
   confirmTitle: document.querySelector("#confirm-title"),
   confirmBody: document.querySelector("#confirm-body"),
-  confirmActions: document.querySelector("#confirm-actions")
+  confirmActions: document.querySelector("#confirm-actions"),
+  folderToast: document.querySelector("#folder-toast")
 };
+
+function shortenPath(filePath) {
+  if (!filePath) {
+    return "No folder selected";
+  }
+
+  if (filePath.length <= 68) {
+    return filePath;
+  }
+
+  const parts = filePath.split("/");
+
+  if (parts.length <= 4) {
+    return filePath;
+  }
+
+  return `${parts.slice(0, 3).join("/")}/.../${parts.slice(-2).join("/")}`;
+}
+
+function showFolderToast(message) {
+  clearTimeout(state.folderToastTimeoutId);
+  elements.folderToast.textContent = message;
+  elements.folderToast.hidden = false;
+  state.folderToastTimeoutId = window.setTimeout(() => {
+    elements.folderToast.hidden = true;
+  }, 2600);
+}
 
 function createBlankDraft() {
   const now = new Date();
@@ -231,7 +262,7 @@ function renderEntriesTree() {
   if (!state.journalDirectory) {
     const message = document.createElement("p");
     message.className = "sidebar-empty";
-    message.textContent = "Choose a journal folder to load your entries.";
+    message.textContent = "No entries loaded.";
     elements.entriesTree.append(message);
     return;
   }
@@ -239,7 +270,7 @@ function renderEntriesTree() {
   if (state.entries.length === 0) {
     const message = document.createElement("p");
     message.className = "sidebar-empty";
-    message.textContent = "No saved entries yet. Create your first note and save it.";
+    message.textContent = "No saved entries yet.";
     elements.entriesTree.append(message);
     return;
   }
@@ -312,8 +343,8 @@ function renderEditor() {
 
   if (!hasSelection) {
     elements.editorSubtitle.textContent = state.journalDirectory
-      ? "Create a new entry or pick one from the sidebar."
-      : "Select a journal folder to begin.";
+      ? shortenPath(state.journalDirectory)
+      : "No folder selected";
     elements.saveButton.disabled = true;
     return;
   }
@@ -324,8 +355,12 @@ function renderEditor() {
 }
 
 function renderChrome() {
-  elements.directoryLabel.textContent = state.journalDirectory || "Choose a journal folder to begin.";
+  elements.directoryLabel.textContent = shortenPath(state.journalDirectory);
   elements.externalStatus.hidden = !state.hasExternalChanges;
+  elements.emptyStateTitle.textContent = state.journalDirectory ? "No entry selected." : "No journal folder selected.";
+  elements.emptyStateBody.textContent = state.journalDirectory
+    ? `Saving to ${shortenPath(state.journalDirectory)}`
+    : "Choose a folder to start.";
 }
 
 function render() {
@@ -515,11 +550,16 @@ async function handleChooseFolder() {
   }
 
   const settings = await api.settings.chooseJournalDirectory();
+  const previousDirectory = state.journalDirectory;
   state.journalDirectory = settings.journalDirectory || "";
   state.currentEntry = null;
   state.selectedFilePath = "";
   state.savedSnapshot = "";
   await loadEntries({ preserveSelection: false });
+
+  if (state.journalDirectory && state.journalDirectory !== previousDirectory) {
+    showFolderToast(`Folder selected: ${shortenPath(state.journalDirectory)}`);
+  }
 }
 
 function handleEditorInput() {

@@ -1,17 +1,17 @@
 :root {
   color-scheme: light;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  --paper: #f4f1ea;
-  --paper-deep: #ebe5d9;
-  --paper-soft: rgba(255, 252, 246, 0.84);
-  --ink: #261f17;
-  --ink-soft: #5f5547;
-  --line: rgba(63, 44, 22, 0.12);
-  --line-strong: rgba(63, 44, 22, 0.22);
-  --accent: #2f6b45;
-  --accent-soft: rgba(47, 107, 69, 0.12);
-  --warning: #8a4b2b;
-  --shadow: 0 18px 50px rgba(55, 36, 14, 0.08);
+  --paper: #efede8;
+  --panel: #f7f6f3;
+  --paper-soft: rgba(247, 246, 243, 0.92);
+  --ink: #1f1f1b;
+  --ink-soft: #66625b;
+  --line: rgba(31, 31, 27, 0.09);
+  --line-strong: rgba(31, 31, 27, 0.18);
+  --accent: #4f5c4d;
+  --accent-soft: rgba(79, 92, 77, 0.1);
+  --warning: #8d6044;
+  --shadow: 0 10px 28px rgba(16, 16, 12, 0.05);
 }
 
 * {
@@ -30,6 +30,7 @@ body {
 
 body {
   overflow: hidden;
+  background: #e9e6e0;
 }
 
 button,
@@ -49,17 +50,14 @@ textarea {
   flex-direction: column;
   min-width: 0;
   border-right: 1px solid var(--line);
-  background:
-    linear-gradient(180deg, rgba(255, 251, 244, 0.95), rgba(239, 232, 219, 0.98)),
-    var(--paper);
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.65);
+  background: var(--paper);
 }
 
 .sidebar-header {
   -webkit-app-region: drag;
   padding: 42px 24px 24px;
   border-bottom: 1px solid var(--line);
-  min-height: 188px;
+  min-height: 210px;
 }
 
 .eyebrow,
@@ -97,7 +95,7 @@ textarea {
   padding: 7px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--line);
   color: var(--ink-soft);
 }
@@ -115,10 +113,11 @@ textarea {
 }
 
 .directory-label {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   line-height: 1.45;
-  color: var(--ink-soft);
+  color: var(--ink);
   word-break: break-word;
+  font-size: 0.93rem;
 }
 
 .sidebar-actions,
@@ -126,6 +125,20 @@ textarea {
   display: flex;
   gap: 10px;
   margin-top: 18px;
+}
+
+.location-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.location-label {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
 }
 
 .no-drag {
@@ -158,15 +171,15 @@ textarea {
 .button-primary {
   background: var(--accent);
   color: #f8f7f1;
-  box-shadow: 0 10px 18px rgba(47, 107, 69, 0.18);
+  box-shadow: none;
 }
 
 .button-primary:hover {
-  background: #295d3d;
+  background: #444f42;
 }
 
 .button-secondary {
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.82);
   color: var(--ink);
   border-color: var(--line);
 }
@@ -227,14 +240,13 @@ textarea {
 
 .entry-button:hover {
   transform: translateX(2px);
-  background: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.7);
   border-color: rgba(87, 62, 31, 0.08);
 }
 
 .entry-button.is-selected {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: rgba(47, 107, 69, 0.18);
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(79, 92, 77, 0.2);
 }
 
 .entry-title {
@@ -252,10 +264,10 @@ textarea {
 .sidebar-empty {
   margin: 0;
   padding: 14px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.46);
+  background: rgba(255, 255, 255, 0.44);
 }
 
 .editor-panel {
@@ -263,6 +275,7 @@ textarea {
   flex-direction: column;
   min-width: 0;
   padding: 0 36px 30px;
+  background: #f1efe9;
 }
 
 .editor-drag-strip {
@@ -284,6 +297,7 @@ textarea {
   margin: 10px 0 0;
   color: var(--ink-soft);
   line-height: 1.45;
+  word-break: break-word;
 }
 
 .empty-state {
@@ -292,31 +306,26 @@ textarea {
   flex: 1;
 }
 
-.empty-state-card {
-  max-width: 460px;
-  padding: 42px;
-  border-radius: 28px;
-  background: var(--paper-soft);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
+.empty-state-copy {
+  width: min(520px, 100%);
+  padding: 0 8px;
 }
 
-.empty-state-card h2 {
-  margin: 12px 0 14px;
+.empty-state-title {
+  margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 2rem;
+  font-size: 2.35rem;
   line-height: 1.05;
 }
 
-.empty-state-card p {
-  margin: 0;
+.empty-state-body {
+  margin: 14px 0 0;
   line-height: 1.6;
   color: var(--ink-soft);
 }
 
-.empty-state-card .button {
-  margin-top: 24px;
+.empty-state-copy .button {
+  margin-top: 20px;
 }
 
 .editor-form {
@@ -326,11 +335,10 @@ textarea {
   min-height: 0;
   flex: 1;
   padding: 28px;
-  border-radius: 32px;
-  background: rgba(255, 252, 247, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: 24px;
+  background: var(--panel);
+  border: 1px solid rgba(31, 31, 27, 0.08);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
 }
 
 .field-group {
@@ -348,7 +356,7 @@ textarea {
 .content-input {
   width: 100%;
   border: 1px solid rgba(75, 54, 29, 0.12);
-  background: rgba(255, 255, 255, 0.84);
+  background: #fcfbf9;
   border-radius: 18px;
   color: var(--ink);
   outline: none;
@@ -362,7 +370,7 @@ textarea {
 .content-input:focus {
   border-color: rgba(47, 107, 69, 0.35);
   box-shadow: 0 0 0 4px rgba(47, 107, 69, 0.08);
-  background: rgba(255, 255, 255, 0.96);
+  background: #ffffff;
 }
 
 .date-input {
@@ -406,6 +414,20 @@ textarea {
   background: rgba(255, 251, 246, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.86);
   box-shadow: 0 24px 60px rgba(44, 28, 11, 0.18);
+}
+
+.folder-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  max-width: min(480px, calc(100vw - 48px));
+  padding: 12px 14px;
+  border: 1px solid rgba(79, 92, 77, 0.18);
+  border-radius: 14px;
+  background: rgba(250, 249, 246, 0.96);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-size: 0.92rem;
 }
 
 .confirm-title {
