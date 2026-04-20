@@ -338,7 +338,7 @@ function renderEntriesTree() {
 function renderEditor() {
   const hasSelection = Boolean(state.currentEntry);
   elements.editorForm.hidden = !hasSelection;
-  elements.emptyState.hidden = hasSelection;
+  elements.emptyState.hidden = hasSelection || Boolean(state.journalDirectory);
   elements.newEntryButton.disabled = false;
 
   if (!hasSelection) {
