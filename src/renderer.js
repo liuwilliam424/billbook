@@ -440,6 +440,12 @@ async function loadEntries({ preserveSelection = true } = {}) {
       return;
     }
 
+    if (!state.currentEntry && state.journalDirectory && state.entries.length === 0) {
+      setCurrentEntry(createBlankDraft());
+      render();
+      return;
+    }
+
     render();
     return;
   }
