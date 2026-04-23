@@ -52,6 +52,15 @@ function shortenPath(filePath) {
   return `${parts.slice(0, 3).join("/")}/.../${parts.slice(-2).join("/")}`;
 }
 
+function getBasename(filePath) {
+  if (!filePath) {
+    return "";
+  }
+
+  const parts = filePath.split("/");
+  return parts[parts.length - 1] || filePath;
+}
+
 function showFolderToast(message) {
   clearTimeout(state.folderToastTimeoutId);
   elements.folderToast.textContent = message;
@@ -338,29 +347,25 @@ function renderEntriesTree() {
 function renderEditor() {
   const hasSelection = Boolean(state.currentEntry);
   elements.editorForm.hidden = !hasSelection;
-  elements.emptyState.hidden = hasSelection || Boolean(state.journalDirectory);
+  elements.emptyState.hidden = true;
   elements.newEntryButton.disabled = false;
 
   if (!hasSelection) {
     elements.editorSubtitle.textContent = state.journalDirectory
-      ? shortenPath(state.journalDirectory)
+      ? "No entry selected"
       : "No folder selected";
     elements.saveButton.disabled = true;
     return;
   }
 
   elements.editorSubtitle.textContent = state.currentEntry.filePath
-    ? state.currentEntry.filePath
+    ? getBasename(state.currentEntry.filePath)
     : "New unsaved entry";
 }
 
 function renderChrome() {
   elements.directoryLabel.textContent = shortenPath(state.journalDirectory);
   elements.externalStatus.hidden = !state.hasExternalChanges;
-  elements.emptyStateTitle.textContent = state.journalDirectory ? "No entry selected." : "No journal folder selected.";
-  elements.emptyStateBody.textContent = state.journalDirectory
-    ? `Saving to ${shortenPath(state.journalDirectory)}`
-    : "Choose a folder to start.";
 }
 
 function render() {
