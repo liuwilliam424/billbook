@@ -43,11 +43,20 @@
             <p id="editor-subtitle" class="editor-subtitle">Select an entry or create a new one.</p>
           </div>
           <div class="editor-toolbar-actions">
-            <span id="external-status" class="external-status" hidden>
-              External changes detected
-            </span>
             <button id="save-button" class="button button-primary no-drag" type="button">
               Save
+            </button>
+          </div>
+        </div>
+
+        <div id="conflict-bar" class="conflict-bar" hidden>
+          <p id="conflict-message" class="conflict-message">This note changed outside Billbook.</p>
+          <div class="conflict-actions">
+            <button id="reload-entry-button" class="button button-secondary no-drag" type="button">
+              Reload
+            </button>
+            <button id="keep-mine-button" class="button button-secondary no-drag" type="button">
+              Keep Mine
             </button>
           </div>
         </div>

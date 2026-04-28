@@ -87,8 +87,7 @@ textarea {
   letter-spacing: -0.03em;
 }
 
-.status-pill,
-.external-status {
+.status-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -106,10 +105,10 @@ textarea {
   color: var(--accent);
 }
 
-.external-status {
+.status-pill.is-conflict {
   color: var(--warning);
-  border-color: rgba(138, 75, 43, 0.2);
-  background: rgba(138, 75, 43, 0.08);
+  border-color: rgba(141, 96, 68, 0.2);
+  background: rgba(141, 96, 68, 0.08);
 }
 
 .directory-label {
@@ -298,6 +297,29 @@ textarea {
   color: var(--ink-soft);
   line-height: 1.45;
   word-break: break-word;
+}
+
+.conflict-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid rgba(141, 96, 68, 0.18);
+  border-radius: 14px;
+  background: rgba(141, 96, 68, 0.06);
+}
+
+.conflict-message {
+  margin: 0;
+  color: var(--warning);
+  font-size: 0.92rem;
+}
+
+.conflict-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .empty-state {

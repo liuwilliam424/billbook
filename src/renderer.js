@@ -7,6 +7,7 @@ const state = {
   selectedFilePath: "",
   savedSnapshot: "",
   hasExternalChanges: false,
+  externalChangeMessage: "",
   folderToastTimeoutId: null
 };
 
@@ -21,7 +22,10 @@ const elements = {
   editorForm: document.querySelector("#editor-form"),
   emptyState: document.querySelector("#empty-state"),
   editorSubtitle: document.querySelector("#editor-subtitle"),
-  externalStatus: document.querySelector("#external-status"),
+  conflictBar: document.querySelector("#conflict-bar"),
+  conflictMessage: document.querySelector("#conflict-message"),
+  reloadEntryButton: document.querySelector("#reload-entry-button"),
+  keepMineButton: document.querySelector("#keep-mine-button"),
   emptyStateTitle: document.querySelector("#empty-state-title"),
   emptyStateBody: document.querySelector("#empty-state-body"),
   dateInput: document.querySelector("#entry-date"),
@@ -68,6 +72,10 @@ function showFolderToast(message) {
   state.folderToastTimeoutId = window.setTimeout(() => {
     elements.folderToast.hidden = true;
   }, 2600);
+}
+
+function showToast(message) {
+  showFolderToast(message);
 }
 
 function createBlankDraft() {
@@ -167,12 +175,20 @@ function isDirty() {
   return snapshotEntry(state.currentEntry) !== state.savedSnapshot;
 }
 
+function renderSaveStatus() {
+  const dirty = isDirty();
+  const conflict = state.hasExternalChanges;
+
+  elements.saveStatus.textContent = conflict ? "Conflict" : dirty ? "Unsaved" : "Saved";
+  elements.saveStatus.classList.toggle("is-dirty", dirty && !conflict);
+  elements.saveStatus.classList.toggle("is-conflict", conflict);
+  elements.saveButton.disabled = !state.currentEntry || !dirty;
+}
+
 function syncDirtyState() {
   const dirty = isDirty();
   void api.app.setDirty(dirty);
-  elements.saveStatus.textContent = dirty ? "Unsaved" : "Saved";
-  elements.saveStatus.classList.toggle("is-dirty", dirty);
-  elements.saveButton.disabled = !state.currentEntry || !dirty;
+  renderSaveStatus();
 }
 
 function setCurrentEntry(entry, { markSaved = true } = {}) {
@@ -180,11 +196,11 @@ function setCurrentEntry(entry, { markSaved = true } = {}) {
   state.selectedFilePath = entry.filePath || "";
   state.savedSnapshot = markSaved ? snapshotEntry(entry) : state.savedSnapshot;
   state.hasExternalChanges = false;
+  state.externalChangeMessage = "";
 
   elements.dateInput.value = entry.date || "";
   elements.titleInput.value = entry.title || "";
   elements.contentInput.value = entry.content || "";
-  elements.externalStatus.hidden = true;
 
   renderEditor();
   syncDirtyState();
@@ -365,7 +381,9 @@ function renderEditor() {
 
 function renderChrome() {
   elements.directoryLabel.textContent = shortenPath(state.journalDirectory);
-  elements.externalStatus.hidden = !state.hasExternalChanges;
+  elements.conflictBar.hidden = !state.hasExternalChanges;
+  elements.conflictMessage.textContent = state.externalChangeMessage || "This note changed outside Billbook.";
+  renderSaveStatus();
 }
 
 function render() {
@@ -597,18 +615,40 @@ async function handleExternalChanges() {
       state.selectedFilePath = "";
       state.savedSnapshot = "";
       render();
+      showToast("Note removed from disk");
+      return;
     }
 
+    state.hasExternalChanges = true;
+    state.externalChangeMessage = "This note was removed outside Billbook.";
+    renderChrome();
     return;
   }
 
   if (dirty) {
     state.hasExternalChanges = true;
+    state.externalChangeMessage = "This note changed outside Billbook.";
     renderChrome();
     return;
   }
 
   await loadEntry(currentPath);
+  showToast("Updated from disk");
+}
+
+async function handleReloadFromDisk() {
+  if (!state.selectedFilePath) {
+    return;
+  }
+
+  await loadEntry(state.selectedFilePath);
+  showToast("Reloaded from disk");
+}
+
+function handleKeepMine() {
+  state.hasExternalChanges = false;
+  state.externalChangeMessage = "";
+  renderChrome();
 }
 
 function bindEvents() {
@@ -616,6 +656,8 @@ function bindEvents() {
   elements.emptyStateButton.addEventListener("click", handleChooseFolder);
   elements.newEntryButton.addEventListener("click", handleNewEntry);
   elements.saveButton.addEventListener("click", saveCurrentEntry);
+  elements.reloadEntryButton.addEventListener("click", handleReloadFromDisk);
+  elements.keepMineButton.addEventListener("click", handleKeepMine);
   elements.dateInput.addEventListener("input", handleEditorInput);
   elements.titleInput.addEventListener("input", handleEditorInput);
   elements.contentInput.addEventListener("input", handleEditorInput);
