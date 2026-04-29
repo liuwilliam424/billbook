@@ -1,17 +1,17 @@
 :root {
   color-scheme: light;
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
-  --paper: #efede8;
-  --panel: #f7f6f3;
-  --paper-soft: rgba(247, 246, 243, 0.92);
-  --ink: #1f1f1b;
-  --ink-soft: #66625b;
-  --line: rgba(31, 31, 27, 0.09);
-  --line-strong: rgba(31, 31, 27, 0.18);
-  --accent: #4f5c4d;
-  --accent-soft: rgba(79, 92, 77, 0.1);
-  --warning: #8d6044;
-  --shadow: 0 10px 28px rgba(16, 16, 12, 0.05);
+  font-family: "SF Pro Text", "Segoe UI", sans-serif;
+  --paper: #f4f4f2;
+  --panel: #fbfbfa;
+  --paper-soft: rgba(251, 251, 250, 0.96);
+  --ink: #1f1f1f;
+  --ink-soft: #6f6f6a;
+  --line: rgba(31, 31, 31, 0.1);
+  --line-strong: rgba(31, 31, 31, 0.18);
+  --accent: #4a4a45;
+  --accent-soft: rgba(74, 74, 69, 0.08);
+  --warning: #87593f;
+  --shadow: 0 2px 8px rgba(15, 15, 15, 0.04);
 }
 
 * {
@@ -22,15 +22,12 @@ html,
 body {
   height: 100%;
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 36%),
-    linear-gradient(135deg, #f6f2ea 0%, #ece3d4 100%);
   color: var(--ink);
 }
 
 body {
   overflow: hidden;
-  background: #e9e6e0;
+  background: #f1f1ef;
 }
 
 button,
@@ -50,14 +47,14 @@ textarea {
   flex-direction: column;
   min-width: 0;
   border-right: 1px solid var(--line);
-  background: var(--paper);
+  background: #f3f3f1;
 }
 
 .sidebar-header {
   -webkit-app-region: drag;
-  padding: 42px 24px 24px;
+  padding: 38px 20px 20px;
   border-bottom: 1px solid var(--line);
-  min-height: 210px;
+  min-height: 198px;
 }
 
 .eyebrow,
@@ -81,27 +78,26 @@ textarea {
 
 .sidebar-title-row h1 {
   margin: 0;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-size: 2.05rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 12px;
+  padding: 6px 11px;
   border-radius: 999px;
-  font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--line);
   color: var(--ink-soft);
 }
 
 .status-pill.is-dirty {
   background: var(--accent-soft);
-  border-color: rgba(47, 107, 69, 0.22);
+  border-color: rgba(74, 74, 69, 0.18);
   color: var(--accent);
 }
 
@@ -116,19 +112,19 @@ textarea {
   line-height: 1.45;
   color: var(--ink);
   word-break: break-word;
-  font-size: 0.93rem;
+  font-size: 0.88rem;
 }
 
 .sidebar-actions,
 .editor-toolbar-actions {
   display: flex;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .location-panel {
-  margin-top: 18px;
-  padding-top: 14px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
@@ -145,57 +141,49 @@ textarea {
 }
 
 .button {
-  border: 1px solid transparent;
-  border-radius: 14px;
-  padding: 11px 16px;
-  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 560;
   cursor: pointer;
   transition:
-    transform 140ms ease,
     background-color 140ms ease,
-    border-color 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.button:hover {
-  transform: translateY(-1px);
+    border-color 140ms ease;
 }
 
 .button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
-  transform: none;
 }
 
 .button-primary {
   background: var(--accent);
-  color: #f8f7f1;
-  box-shadow: none;
+  color: #f7f7f5;
 }
 
 .button-primary:hover {
-  background: #444f42;
+  background: #3f3f3a;
 }
 
 .button-secondary {
-  background: rgba(255, 255, 255, 0.82);
+  background: #ffffff;
   color: var(--ink);
   border-color: var(--line);
 }
 
 .button-secondary:hover {
   border-color: var(--line-strong);
-  background: rgba(255, 255, 255, 0.88);
+  background: #fcfcfb;
 }
 
 .entries-tree {
   flex: 1;
   overflow: auto;
-  padding: 20px 18px 28px;
+  padding: 16px 14px 24px;
 }
 
 .group-block + .group-block {
-  margin-top: 22px;
+  margin-top: 18px;
 }
 
 .group-heading {
@@ -208,7 +196,8 @@ textarea {
 
 .month-heading {
   margin: 0 0 8px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -220,32 +209,30 @@ textarea {
 
 .entry-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .entry-button {
   width: 100%;
   text-align: left;
-  border: 1px solid transparent;
+  border: 1px solid var(--line);
   background: transparent;
-  border-radius: 18px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 10px 12px;
   cursor: pointer;
   transition:
     background-color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
+    border-color 160ms ease;
 }
 
 .entry-button:hover {
-  transform: translateX(2px);
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(87, 62, 31, 0.08);
+  background: rgba(255, 255, 255, 0.76);
+  border-color: var(--line-strong);
 }
 
 .entry-button.is-selected {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(79, 92, 77, 0.2);
+  background: #ffffff;
+  border-color: rgba(74, 74, 69, 0.24);
 }
 
 .entry-title {
@@ -262,25 +249,25 @@ textarea {
 
 .sidebar-empty {
   margin: 0;
-  padding: 14px;
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 10px;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .editor-panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 0 36px 30px;
-  background: #f1efe9;
+  padding: 0 28px 24px;
+  background: #f6f6f4;
 }
 
 .editor-drag-strip {
   -webkit-app-region: drag;
-  min-height: 34px;
-  flex: 0 0 34px;
+  min-height: 28px;
+  flex: 0 0 28px;
 }
 
 .editor-toolbar {
@@ -288,8 +275,8 @@ textarea {
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  min-height: 96px;
-  padding: 16px 0 26px;
+  min-height: 76px;
+  padding: 12px 0 18px;
 }
 
 .editor-subtitle {
@@ -304,10 +291,10 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 0 0 20px;
-  padding: 12px 14px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
   border: 1px solid rgba(141, 96, 68, 0.18);
-  border-radius: 14px;
+  border-radius: 10px;
   background: rgba(141, 96, 68, 0.06);
 }
 
@@ -335,8 +322,8 @@ textarea {
 
 .empty-state-title {
   margin: 0;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 2.35rem;
+  font-size: 2rem;
+  font-weight: 650;
   line-height: 1.05;
 }
 
@@ -353,14 +340,14 @@ textarea {
 .editor-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-height: 0;
   flex: 1;
-  padding: 28px;
-  border-radius: 24px;
+  padding: 22px;
+  border-radius: 14px;
   background: var(--panel);
   border: 1px solid rgba(31, 31, 27, 0.08);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 .field-group {
@@ -377,9 +364,9 @@ textarea {
 .text-input,
 .content-input {
   width: 100%;
-  border: 1px solid rgba(75, 54, 29, 0.12);
-  background: #fcfbf9;
-  border-radius: 18px;
+  border: 1px solid rgba(31, 31, 31, 0.12);
+  background: #ffffff;
+  border-radius: 10px;
   color: var(--ink);
   outline: none;
   transition:
@@ -397,14 +384,13 @@ textarea {
 
 .date-input {
   max-width: 240px;
-  padding: 13px 15px;
+  padding: 11px 13px;
 }
 
 .title-input {
-  padding: 16px 18px;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 2rem;
-  font-weight: 600;
+  padding: 14px 16px;
+  font-size: 1.7rem;
+  font-weight: 640;
   letter-spacing: -0.03em;
 }
 
@@ -412,10 +398,9 @@ textarea {
   min-height: 0;
   height: 100%;
   resize: none;
-  padding: 22px;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 1.08rem;
-  line-height: 1.7;
+  padding: 16px;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .confirm-dialog {
@@ -431,11 +416,11 @@ textarea {
 
 .confirm-dialog-card {
   width: min(420px, calc(100vw - 32px));
-  padding: 28px;
-  border-radius: 28px;
+  padding: 24px;
+  border-radius: 14px;
   background: rgba(255, 251, 246, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.86);
-  box-shadow: 0 24px 60px rgba(44, 28, 11, 0.18);
+  box-shadow: 0 12px 32px rgba(44, 28, 11, 0.12);
 }
 
 .folder-toast {
@@ -443,13 +428,13 @@ textarea {
   right: 24px;
   bottom: 24px;
   max-width: min(480px, calc(100vw - 48px));
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(79, 92, 77, 0.18);
-  border-radius: 14px;
+  border-radius: 10px;
   background: rgba(250, 249, 246, 0.96);
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 18px rgba(15, 15, 15, 0.08);
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .confirm-title {
