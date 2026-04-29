@@ -68,9 +68,9 @@ function getBasename(filePath) {
 function showFolderToast(message) {
   clearTimeout(state.folderToastTimeoutId);
   elements.folderToast.textContent = message;
-  elements.folderToast.hidden = false;
+  elements.folderToast.classList.remove("is-hidden");
   state.folderToastTimeoutId = window.setTimeout(() => {
-    elements.folderToast.hidden = true;
+    elements.folderToast.classList.add("is-hidden");
   }, 2600);
 }
 
@@ -362,8 +362,8 @@ function renderEntriesTree() {
 
 function renderEditor() {
   const hasSelection = Boolean(state.currentEntry);
-  elements.editorForm.hidden = !hasSelection;
-  elements.emptyState.hidden = true;
+  elements.editorForm.classList.toggle("is-hidden", !hasSelection);
+  elements.emptyState.classList.add("is-hidden");
   elements.newEntryButton.disabled = false;
 
   if (!hasSelection) {
@@ -381,7 +381,7 @@ function renderEditor() {
 
 function renderChrome() {
   elements.directoryLabel.textContent = shortenPath(state.journalDirectory);
-  elements.conflictBar.hidden = !state.hasExternalChanges;
+  elements.conflictBar.classList.toggle("is-hidden", !state.hasExternalChanges);
   elements.conflictMessage.textContent = state.externalChangeMessage || "This note changed outside Billbook.";
   renderSaveStatus();
 }

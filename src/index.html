@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <div id="conflict-bar" class="conflict-bar" hidden>
+        <div id="conflict-bar" class="conflict-bar is-hidden">
           <p id="conflict-message" class="conflict-message">This note changed outside Billbook.</p>
           <div class="conflict-actions">
             <button id="reload-entry-button" class="button button-secondary no-drag" type="button">
@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <section id="empty-state" class="empty-state">
+        <section id="empty-state" class="empty-state is-hidden">
           <div class="empty-state-copy">
             <p id="empty-state-title" class="empty-state-title">No journal folder selected.</p>
             <p id="empty-state-body" class="empty-state-body">Choose a folder to start.</p>
@@ -71,7 +71,7 @@
           </div>
         </section>
 
-        <section id="editor-form" class="editor-form" hidden>
+        <section id="editor-form" class="editor-form is-hidden">
           <label class="field-group" for="entry-date">
             <span class="field-label">Date</span>
             <input id="entry-date" class="text-input date-input" type="date" />
@@ -111,7 +111,7 @@
       </form>
     </dialog>
 
-    <div id="folder-toast" class="folder-toast" hidden></div>
+    <div id="folder-toast" class="folder-toast is-hidden"></div>
 
     <script src="./renderer.js"></script>
   </body>

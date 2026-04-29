@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  font-family: "SF Pro Text", "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   --paper: #f4f4f2;
   --panel: #fbfbfa;
   --paper-soft: rgba(251, 251, 250, 0.96);
@@ -10,8 +10,12 @@
   --line-strong: rgba(31, 31, 31, 0.18);
   --accent: #4a4a45;
   --accent-soft: rgba(74, 74, 69, 0.08);
-  --warning: #87593f;
+  --warning: #5f5f59;
   --shadow: 0 2px 8px rgba(15, 15, 15, 0.04);
+}
+
+.is-hidden {
+  display: none !important;
 }
 
 * {
@@ -78,8 +82,8 @@ textarea {
 
 .sidebar-title-row h1 {
   margin: 0;
-  font-size: 2.05rem;
-  font-weight: 650;
+  font-size: 1.9rem;
+  font-weight: 600;
   letter-spacing: -0.04em;
 }
 
@@ -103,8 +107,8 @@ textarea {
 
 .status-pill.is-conflict {
   color: var(--warning);
-  border-color: rgba(141, 96, 68, 0.2);
-  background: rgba(141, 96, 68, 0.08);
+  border-color: rgba(95, 95, 89, 0.2);
+  background: rgba(95, 95, 89, 0.08);
 }
 
 .directory-label {
@@ -157,12 +161,12 @@ textarea {
 }
 
 .button-primary {
-  background: var(--accent);
+  background: #5a5a55;
   color: #f7f7f5;
 }
 
 .button-primary:hover {
-  background: #3f3f3a;
+  background: #4f4f4a;
 }
 
 .button-secondary {
@@ -231,8 +235,8 @@ textarea {
 }
 
 .entry-button.is-selected {
-  background: #ffffff;
-  border-color: rgba(74, 74, 69, 0.24);
+  background: #fdfdfc;
+  border-color: rgba(31, 31, 31, 0.18);
 }
 
 .entry-title {
@@ -293,9 +297,9 @@ textarea {
   gap: 18px;
   margin: 0 0 16px;
   padding: 10px 12px;
-  border: 1px solid rgba(141, 96, 68, 0.18);
+  border: 1px solid rgba(95, 95, 89, 0.18);
   border-radius: 10px;
-  background: rgba(141, 96, 68, 0.06);
+  background: rgba(95, 95, 89, 0.05);
 }
 
 .conflict-message {
@@ -389,8 +393,8 @@ textarea {
 
 .title-input {
   padding: 14px 16px;
-  font-size: 1.7rem;
-  font-weight: 640;
+  font-size: 1.55rem;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
