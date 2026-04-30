@@ -183,19 +183,23 @@ textarea {
 .entries-tree {
   flex: 1;
   overflow: auto;
-  padding: 16px 14px 24px;
+  padding: 18px 14px 28px;
 }
 
 .group-block + .group-block {
-  margin-top: 18px;
+  margin-top: 24px;
 }
 
 .group-heading {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+}
+
+.month-block + .month-block {
+  margin-top: 18px;
 }
 
 .month-heading {
@@ -205,15 +209,50 @@ textarea {
   color: var(--ink);
 }
 
+.week-block + .week-block {
+  margin-top: 8px;
+}
+
 .week-heading {
-  margin: 16px 0 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
   font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.week-heading:hover {
+  color: var(--ink);
+}
+
+.week-heading.is-collapsed {
+  margin-bottom: 0;
+}
+
+.week-heading-label {
+  pointer-events: none;
+}
+
+.week-heading-meta {
+  min-width: 1.5rem;
+  text-align: right;
+  font-size: 0.78rem;
   color: var(--ink-soft);
 }
 
 .entry-list {
   display: grid;
   gap: 6px;
+  margin-top: 4px;
+  padding-left: 8px;
 }
 
 .entry-button {

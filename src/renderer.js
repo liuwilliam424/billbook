@@ -8,6 +8,7 @@ const state = {
   savedSnapshot: "",
   hasExternalChanges: false,
   externalChangeMessage: "",
+  expandedWeeks: new Set(),
   folderToastTimeoutId: null
 };
 
@@ -171,6 +172,14 @@ function getWeekKey(dateString) {
   ].join("-");
 }
 
+function getSelectedWeekKey() {
+  if (!state.currentEntry || !state.currentEntry.date) {
+    return "";
+  }
+
+  return getWeekKey(state.currentEntry.date);
+}
+
 function isDirty() {
   return snapshotEntry(state.currentEntry) !== state.savedSnapshot;
 }
@@ -301,6 +310,7 @@ function renderEntriesTree() {
   }
 
   const groupedEntries = groupEntries(state.entries);
+  const selectedWeekKey = getSelectedWeekKey();
 
   for (const yearGroup of groupedEntries) {
     const yearBlock = document.createElement("section");
@@ -313,6 +323,7 @@ function renderEntriesTree() {
 
     for (const monthGroup of yearGroup.months) {
       const monthBlock = document.createElement("section");
+      monthBlock.className = "month-block";
 
       const monthHeading = document.createElement("h3");
       monthHeading.className = "month-heading";
@@ -320,13 +331,33 @@ function renderEntriesTree() {
       monthBlock.append(monthHeading);
 
       for (const weekGroup of monthGroup.weeks) {
-        const weekHeading = document.createElement("h4");
+        const weekBlock = document.createElement("section");
+        weekBlock.className = "week-block";
+
+        const weekHeading = document.createElement("button");
+        weekHeading.type = "button";
         weekHeading.className = "week-heading";
-        weekHeading.textContent = weekGroup.weekLabel;
-        monthBlock.append(weekHeading);
+        weekHeading.dataset.weekKey = weekGroup.weekKey;
+
+        const weekLabel = document.createElement("span");
+        weekLabel.className = "week-heading-label";
+        weekLabel.textContent = weekGroup.weekLabel;
+
+        const weekMeta = document.createElement("span");
+        weekMeta.className = "week-heading-meta";
+        weekMeta.textContent = `${weekGroup.items.length}`;
+
+        weekHeading.append(weekLabel, weekMeta);
+        weekBlock.append(weekHeading);
 
         const list = document.createElement("div");
         list.className = "entry-list";
+        const isExpanded = state.expandedWeeks.has(weekGroup.weekKey) || weekGroup.weekKey === selectedWeekKey;
+
+        if (!isExpanded) {
+          list.classList.add("is-hidden");
+          weekHeading.classList.add("is-collapsed");
+        }
 
         for (const entry of weekGroup.items) {
           const button = document.createElement("button");
@@ -350,7 +381,8 @@ function renderEntriesTree() {
           list.append(button);
         }
 
-        monthBlock.append(list);
+        weekBlock.append(list);
+        monthBlock.append(weekBlock);
       }
 
       yearBlock.append(monthBlock);
@@ -663,6 +695,25 @@ function bindEvents() {
   elements.contentInput.addEventListener("input", handleEditorInput);
 
   elements.entriesTree.addEventListener("click", async (event) => {
+    const weekButton = event.target.closest(".week-heading");
+
+    if (weekButton) {
+      const { weekKey } = weekButton.dataset;
+      const selectedWeekKey = getSelectedWeekKey();
+
+      if (weekKey && weekKey !== selectedWeekKey) {
+        if (state.expandedWeeks.has(weekKey)) {
+          state.expandedWeeks.delete(weekKey);
+        } else {
+          state.expandedWeeks.add(weekKey);
+        }
+
+        renderEntriesTree();
+      }
+
+      return;
+    }
+
     const button = event.target.closest(".entry-button");
 
     if (!button) {
