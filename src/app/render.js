@@ -21,6 +21,13 @@ export function renderSaveStatus(state, elements) {
   elements.saveStatus.classList.toggle("is-conflict", conflict);
 }
 
+function renderSidebarMenu(state, elements) {
+  const canCreateBackup = Boolean(state.journalDirectory) && !state.journalDirectoryMissing;
+  elements.sidebarMenu.classList.toggle("is-hidden", !state.isSidebarMenuOpen);
+  elements.sidebarMenuButton.setAttribute("aria-expanded", state.isSidebarMenuOpen ? "true" : "false");
+  elements.backupJournalButton.disabled = !canCreateBackup;
+}
+
 function renderEditorSubtitle(state, elements, view) {
   if (view.mode === "editor") {
     const hasSavedFile = Boolean(state.currentEntry.filePath);
@@ -91,6 +98,7 @@ export function renderChrome(state, elements) {
   elements.conflictBar.classList.toggle("is-hidden", !state.hasExternalChanges);
   elements.conflictMessage.textContent = state.externalChangeMessage || "This note changed outside Billbook.";
   renderSaveStatus(state, elements);
+  renderSidebarMenu(state, elements);
 }
 
 export function renderApp(state, elements) {

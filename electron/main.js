@@ -2,6 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
+const { createJournalBackup } = require("./lib/journal-backup");
 const { createSettingsStore } = require("./lib/settings-store");
 const {
   ensureInsideRoot,
@@ -285,6 +286,40 @@ function registerJournalHandlers() {
 
     shell.showItemInFolder(safeFilePath);
     return true;
+  });
+
+  ipcMain.handle("journal:create-backup", async () => {
+    const { journalDirectory, exists } = await getJournalDirectoryState();
+
+    if (!journalDirectory) {
+      throw new Error("Choose a journal folder before creating a backup.");
+    }
+
+    if (!exists) {
+      throw new Error("The selected journal folder is missing. Locate it again before backing up.");
+    }
+
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: "Choose Backup Destination",
+      properties: ["openDirectory", "createDirectory"]
+    });
+
+    if (result.canceled || !result.filePaths[0]) {
+      return {
+        canceled: true,
+        backupDirectory: ""
+      };
+    }
+
+    const backupDirectory = await createJournalBackup({
+      sourceDirectory: journalDirectory,
+      backupParentDirectory: result.filePaths[0]
+    });
+
+    return {
+      canceled: false,
+      backupDirectory
+    };
   });
 
   ipcMain.handle("journal:save-entry", async (_event, entry) => {

@@ -11,6 +11,7 @@ export function createInitialState() {
     collapsedYears: new Set(),
     collapsedMonths: new Set(),
     expandedWeeks: new Set(),
+    isSidebarMenuOpen: false,
     folderToastTimeoutId: null
   };
 }

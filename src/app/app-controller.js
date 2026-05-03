@@ -349,6 +349,73 @@ export class BillbookApp {
     }
   }
 
+  toggleSidebarMenu() {
+    this.state.isSidebarMenuOpen = !this.state.isSidebarMenuOpen;
+    renderChrome(this.state, this.elements);
+  }
+
+  closeSidebarMenu() {
+    if (!this.state.isSidebarMenuOpen) {
+      return;
+    }
+
+    this.state.isSidebarMenuOpen = false;
+    renderChrome(this.state, this.elements);
+  }
+
+  async handleCreateBackup() {
+    this.closeSidebarMenu();
+
+    if (!this.state.journalDirectory || this.state.journalDirectoryMissing) {
+      await this.showConfirmDialog({
+        title: "Backup unavailable",
+        body: "Choose a valid journal folder before creating a backup.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+      return;
+    }
+
+    if (isDirty(this.state)) {
+      const action = await this.showConfirmDialog({
+        title: "Save before backup?",
+        body: "The backup only includes files already written to disk. Save your current entry first?",
+        actions: [
+          { id: "save", label: "Save and Back Up", variant: "primary" },
+          { id: "backup", label: "Back Up Without Saving", variant: "secondary" },
+          { id: "cancel", label: "Cancel", variant: "secondary" }
+        ]
+      });
+
+      if (action === "cancel") {
+        return;
+      }
+
+      if (action === "save") {
+        const saved = await this.saveCurrentEntry();
+
+        if (!saved) {
+          return;
+        }
+      }
+    }
+
+    try {
+      const result = await this.gateway.createBackup();
+
+      if (result?.canceled || !result?.backupDirectory) {
+        return;
+      }
+
+      this.showToast(`Backup created: ${getBasename(result.backupDirectory)}`);
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Backup failed",
+        body: error.message || "The journal backup could not be created.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
   handleEditorInput() {
     this.updateCurrentEntryFromInputs();
     this.syncDirtyState();
@@ -482,6 +549,11 @@ export class BillbookApp {
   bindEvents() {
     this.elements.directoryLink.addEventListener("click", () => this.handleOpenJournalDirectory());
     this.elements.editorSubtitle.addEventListener("click", () => this.handleRevealCurrentEntry());
+    this.elements.sidebarMenuButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.toggleSidebarMenu();
+    });
+    this.elements.backupJournalButton.addEventListener("click", async () => this.handleCreateBackup());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
     this.elements.newEntryButton.addEventListener("click", () => this.handleNewEntry());
@@ -526,6 +598,10 @@ export class BillbookApp {
     });
 
     window.addEventListener("keydown", async (event) => {
+      if (event.key === "Escape") {
+        this.closeSidebarMenu();
+      }
+
       const savePressed = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s";
 
       if (!savePressed) {
@@ -534,6 +610,14 @@ export class BillbookApp {
 
       event.preventDefault();
       await this.saveCurrentEntry();
+    });
+
+    window.addEventListener("click", (event) => {
+      if (event.target.closest(".sidebar-footer")) {
+        return;
+      }
+
+      this.closeSidebarMenu();
     });
 
     this.gateway.onDirectoryChanged(async (payload) => {

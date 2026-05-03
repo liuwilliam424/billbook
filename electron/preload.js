@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("journalApp", {
     listEntries: () => ipcRenderer.invoke("journal:list-entries"),
     readEntry: (filePath) => ipcRenderer.invoke("journal:read-entry", filePath),
     revealEntry: (filePath) => ipcRenderer.invoke("journal:reveal-entry", filePath),
+    createBackup: () => ipcRenderer.invoke("journal:create-backup"),
     saveEntry: (entry) => ipcRenderer.invoke("journal:save-entry", entry)
   },
   app: {
