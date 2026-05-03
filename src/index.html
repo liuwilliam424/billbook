@@ -16,7 +16,6 @@
           <p class="eyebrow">Journal</p>
           <div class="sidebar-title-row">
             <h1>Billbook</h1>
-            <span id="save-status" class="status-pill">Saved</span>
           </div>
           <div class="sidebar-actions">
             <button id="choose-folder-button" class="button button-secondary no-drag" type="button">
@@ -72,9 +71,12 @@
             <div class="editor-form-copy">
               <p class="editor-form-label">Entry</p>
             </div>
-            <button id="save-button" class="button button-primary no-drag" type="button">
-              Save
-            </button>
+            <div class="editor-form-actions">
+              <span id="save-status" class="save-status-text">Saved</span>
+              <button id="save-button" class="button button-primary no-drag" type="button">
+                Save
+              </button>
+            </div>
           </div>
 
           <label class="field-group" for="entry-date">

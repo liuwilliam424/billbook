@@ -4,6 +4,7 @@ import { createInitialState } from "./state.js";
 import {
   cloneEntry,
   createBlankDraft,
+  getSelectedMonthKey,
   getSelectedWeekKey,
   getSelectedYearKey,
   shortenPath,
@@ -378,6 +379,22 @@ export class BillbookApp {
     renderApp(this.state, this.elements);
   }
 
+  handleMonthToggle(monthKey) {
+    const selectedMonthKey = getSelectedMonthKey(this.state.currentEntry);
+
+    if (!monthKey || monthKey === selectedMonthKey) {
+      return;
+    }
+
+    if (this.state.collapsedMonths.has(monthKey)) {
+      this.state.collapsedMonths.delete(monthKey);
+    } else {
+      this.state.collapsedMonths.add(monthKey);
+    }
+
+    renderApp(this.state, this.elements);
+  }
+
   bindEvents() {
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
@@ -394,6 +411,13 @@ export class BillbookApp {
 
       if (yearButton) {
         this.handleYearToggle(yearButton.dataset.yearKey);
+        return;
+      }
+
+      const monthButton = event.target.closest(".month-heading");
+
+      if (monthButton) {
+        this.handleMonthToggle(monthButton.dataset.monthKey);
         return;
       }
 

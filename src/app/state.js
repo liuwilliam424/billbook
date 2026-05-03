@@ -9,6 +9,7 @@ export function createInitialState() {
     hasExternalChanges: false,
     externalChangeMessage: "",
     collapsedYears: new Set(),
+    collapsedMonths: new Set(),
     expandedWeeks: new Set(),
     folderToastTimeoutId: null
   };

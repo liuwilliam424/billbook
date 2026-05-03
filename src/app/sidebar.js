@@ -1,5 +1,5 @@
 import { groupEntries } from "./entry-tree.js";
-import { formatDateInline, getSelectedWeekKey, getSelectedYearKey } from "./utils.js";
+import { formatDateInline, getSelectedMonthKey, getSelectedWeekKey, getSelectedYearKey } from "./utils.js";
 
 export function renderEntriesTree(state, elements) {
   elements.entriesTree.innerHTML = "";
@@ -30,6 +30,7 @@ export function renderEntriesTree(state, elements) {
 
   const groupedEntries = groupEntries(state.entries);
   const selectedYearKey = getSelectedYearKey(state.currentEntry);
+  const selectedMonthKey = getSelectedMonthKey(state.currentEntry);
   const selectedWeekKey = getSelectedWeekKey(state.currentEntry);
 
   for (const yearGroup of groupedEntries) {
@@ -47,7 +48,7 @@ export function renderEntriesTree(state, elements) {
 
     const yearMeta = document.createElement("span");
     yearMeta.className = "group-heading-meta";
-    yearMeta.textContent = `${yearGroup.months.length}`;
+    yearMeta.textContent = `${yearGroup.entryCount}`;
 
     yearHeading.append(yearLabel, yearMeta);
     yearBlock.append(yearHeading);
@@ -65,10 +66,31 @@ export function renderEntriesTree(state, elements) {
       const monthBlock = document.createElement("section");
       monthBlock.className = "month-block";
 
-      const monthHeading = document.createElement("h3");
+      const monthHeading = document.createElement("button");
+      monthHeading.type = "button";
       monthHeading.className = "month-heading";
-      monthHeading.textContent = monthGroup.monthLabel;
+      monthHeading.dataset.monthKey = monthGroup.monthKey;
+
+      const monthLabel = document.createElement("span");
+      monthLabel.className = "month-heading-label";
+      monthLabel.textContent = monthGroup.monthLabel;
+
+      const monthMeta = document.createElement("span");
+      monthMeta.className = "month-heading-meta";
+      monthMeta.textContent = `${monthGroup.entryCount}`;
+
+      monthHeading.append(monthLabel, monthMeta);
       monthBlock.append(monthHeading);
+
+      const weeksWrap = document.createElement("div");
+      weeksWrap.className = "month-sections";
+      const isMonthCollapsed =
+        state.collapsedMonths.has(monthGroup.monthKey) && monthGroup.monthKey !== selectedMonthKey;
+
+      if (isMonthCollapsed) {
+        weeksWrap.classList.add("is-hidden");
+        monthHeading.classList.add("is-collapsed");
+      }
 
       for (const weekGroup of monthGroup.weeks) {
         const weekBlock = document.createElement("section");
@@ -126,9 +148,10 @@ export function renderEntriesTree(state, elements) {
         }
 
         weekBlock.append(list);
-        monthBlock.append(weekBlock);
+        weeksWrap.append(weekBlock);
       }
 
+      monthBlock.append(weeksWrap);
       monthsWrap.append(monthBlock);
     }
 

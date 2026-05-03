@@ -21,21 +21,25 @@ export function groupEntries(entries) {
     if (!years.has(yearKey)) {
       years.set(yearKey, {
         yearKey,
+        entryCount: 0,
         months: new Map()
       });
     }
 
     const yearGroup = years.get(yearKey);
+    yearGroup.entryCount += 1;
 
     if (!yearGroup.months.has(monthKey)) {
       yearGroup.months.set(monthKey, {
         monthKey,
         monthLabel,
+        entryCount: 0,
         weeks: new Map()
       });
     }
 
     const monthGroup = yearGroup.months.get(monthKey);
+    monthGroup.entryCount += 1;
 
     if (!monthGroup.weeks.has(weekKey)) {
       monthGroup.weeks.set(weekKey, {
@@ -51,11 +55,13 @@ export function groupEntries(entries) {
   return Array.from(years.values())
     .map((yearGroup) => ({
       yearKey: yearGroup.yearKey,
+      entryCount: yearGroup.entryCount,
       months: Array.from(yearGroup.months.values())
         .sort((left, right) => right.monthKey.localeCompare(left.monthKey))
         .map((monthGroup) => ({
           monthKey: monthGroup.monthKey,
           monthLabel: monthGroup.monthLabel,
+          entryCount: monthGroup.entryCount,
           weeks: Array.from(monthGroup.weeks.values())
             .sort((left, right) => right.weekKey.localeCompare(left.weekKey))
             .map((weekGroup) => ({

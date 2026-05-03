@@ -123,6 +123,14 @@ export function getSelectedYearKey(currentEntry) {
   return getYearLabel(currentEntry.date);
 }
 
+export function getSelectedMonthKey(currentEntry) {
+  if (!currentEntry || !currentEntry.date) {
+    return "";
+  }
+
+  return getMonthKey(currentEntry.date);
+}
+
 export function getMonthKey(dateString) {
   const weekStart = getWeekStart(dateString);
   return `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}`;
