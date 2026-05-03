@@ -84,6 +84,14 @@ export function renderEntriesTree(state, elements) {
     return;
   }
 
+  if (state.journalDirectoryMissing) {
+    const message = document.createElement("p");
+    message.className = "sidebar-empty";
+    message.textContent = "Saved folder is missing.";
+    elements.entriesTree.append(message);
+    return;
+  }
+
   if (state.entries.length === 0) {
     const message = document.createElement("p");
     message.className = "sidebar-empty";

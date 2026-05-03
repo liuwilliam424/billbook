@@ -40,10 +40,27 @@ function debounce(callback, delay) {
   };
 }
 
+async function pathExists(targetPath) {
+  if (!targetPath) {
+    return false;
+  }
+
+  try {
+    await fsp.access(targetPath, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function watchJournalDirectory(rootDirectory) {
   closeWatcher();
 
   if (!rootDirectory) {
+    return;
+  }
+
+  if (!(await pathExists(rootDirectory))) {
     return;
   }
 
@@ -79,13 +96,28 @@ function focusMainWindow() {
 
 async function getSettingsWithWatcher() {
   const settings = await settingsStore.load();
+  const exists = await pathExists(settings.journalDirectory);
 
-  if (settings.journalDirectory) {
-    await fsp.mkdir(settings.journalDirectory, { recursive: true });
+  if (exists) {
     await watchJournalDirectory(settings.journalDirectory);
   }
 
-  return settings;
+  return {
+    ...settings,
+    journalDirectoryMissing: Boolean(settings.journalDirectory) && !exists
+  };
+}
+
+async function getJournalDirectoryState() {
+  const settings = await settingsStore.load();
+  const journalDirectory = settings.journalDirectory || "";
+  const exists = await pathExists(journalDirectory);
+
+  return {
+    settings,
+    journalDirectory,
+    exists
+  };
 }
 
 function createMainWindow() {
@@ -155,7 +187,7 @@ function registerSettingsHandlers() {
     });
 
     if (result.canceled || !result.filePaths[0]) {
-      return settingsStore.load();
+      return getSettingsWithWatcher();
     }
 
     const settings = await settingsStore.load();
@@ -163,52 +195,72 @@ function registerSettingsHandlers() {
     await fsp.mkdir(settings.journalDirectory, { recursive: true });
     await settingsStore.save(settings);
     await watchJournalDirectory(settings.journalDirectory);
-    return settings;
+    return {
+      ...settings,
+      journalDirectoryMissing: false
+    };
   });
 }
 
 function registerJournalHandlers() {
   ipcMain.handle("journal:list-entries", async () => {
-    const settings = await settingsStore.load();
+    const { journalDirectory, exists } = await getJournalDirectoryState();
 
-    if (!settings.journalDirectory) {
+    if (!journalDirectory) {
       return {
         journalDirectory: "",
+        journalDirectoryMissing: false,
         entries: []
       };
     }
 
-    await fsp.mkdir(settings.journalDirectory, { recursive: true });
-    await watchJournalDirectory(settings.journalDirectory);
+    if (!exists) {
+      closeWatcher();
+      return {
+        journalDirectory,
+        journalDirectoryMissing: true,
+        entries: []
+      };
+    }
+
+    await watchJournalDirectory(journalDirectory);
 
     return {
-      journalDirectory: settings.journalDirectory,
-      entries: await listEntries(settings.journalDirectory)
+      journalDirectory,
+      journalDirectoryMissing: false,
+      entries: await listEntries(journalDirectory)
     };
   });
 
   ipcMain.handle("journal:read-entry", async (_event, filePath) => {
-    const settings = await settingsStore.load();
+    const { journalDirectory, exists } = await getJournalDirectoryState();
 
-    if (!settings.journalDirectory) {
+    if (!journalDirectory) {
       throw new Error("No journal directory configured.");
     }
 
-    return readEntryFile(ensureInsideRoot(settings.journalDirectory, filePath));
+    if (!exists) {
+      throw new Error("The selected journal folder could not be found.");
+    }
+
+    return readEntryFile(ensureInsideRoot(journalDirectory, filePath));
   });
 
   ipcMain.handle("journal:save-entry", async (_event, entry) => {
-    const settings = await settingsStore.load();
+    const { journalDirectory, exists } = await getJournalDirectoryState();
 
-    if (!settings.journalDirectory) {
+    if (!journalDirectory) {
       throw new Error("Choose a journal directory before saving an entry.");
     }
 
-    await fsp.mkdir(settings.journalDirectory, { recursive: true });
-    const savedEntry = await saveEntry(settings.journalDirectory, entry);
+    if (!exists) {
+      throw new Error("The selected journal folder is missing. Locate it again before saving.");
+    }
+
+    const savedEntry = await saveEntry(journalDirectory, entry);
 
     return {
-      journalDirectory: settings.journalDirectory,
+      journalDirectory,
       entry: savedEntry
     };
   });

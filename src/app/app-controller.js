@@ -100,12 +100,13 @@ export class BillbookApp {
   }
 
   async ensureJournalDirectory() {
-    if (this.state.journalDirectory) {
+    if (this.state.journalDirectory && !this.state.journalDirectoryMissing) {
       return true;
     }
 
     const settings = await this.api.settings.chooseJournalDirectory();
     this.state.journalDirectory = settings.journalDirectory || "";
+    this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
     renderChrome(this.state, this.elements);
 
     if (!this.state.journalDirectory) {
@@ -117,9 +118,24 @@ export class BillbookApp {
   }
 
   async loadEntries({ preserveSelection = true } = {}) {
-    const { journalDirectory, entries } = await this.api.journal.listEntries();
+    const hadUnsavedChanges = isDirty(this.state);
+    const { journalDirectory, journalDirectoryMissing, entries } = await this.api.journal.listEntries();
     this.state.journalDirectory = journalDirectory;
+    this.state.journalDirectoryMissing = Boolean(journalDirectoryMissing);
     this.state.entries = entries;
+
+    if (this.state.journalDirectoryMissing) {
+      if (!hadUnsavedChanges) {
+        this.state.currentEntry = null;
+        this.state.selectedFilePath = "";
+        this.state.savedSnapshot = "";
+      }
+
+      this.state.hasExternalChanges = false;
+      this.state.externalChangeMessage = "";
+      renderApp(this.state, this.elements);
+      return;
+    }
 
     if (!preserveSelection || !this.state.selectedFilePath) {
       if (!this.state.currentEntry && this.state.entries.length > 0) {
@@ -245,6 +261,7 @@ export class BillbookApp {
     const settings = await this.api.settings.chooseJournalDirectory();
     const previousDirectory = this.state.journalDirectory;
     this.state.journalDirectory = settings.journalDirectory || "";
+    this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
     this.state.currentEntry = null;
     this.state.selectedFilePath = "";
     this.state.savedSnapshot = "";
@@ -319,6 +336,11 @@ export class BillbookApp {
     const view = getEditorView(this.state);
 
     if (view.mode === "no-folder") {
+      await this.handleChooseFolder();
+      return;
+    }
+
+    if (view.mode === "missing-folder") {
       await this.handleChooseFolder();
       return;
     }
@@ -401,6 +423,7 @@ export class BillbookApp {
 
     const settings = await this.api.settings.get();
     this.state.journalDirectory = settings.journalDirectory || "";
+    this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
     await this.loadEntries({ preserveSelection: false });
     renderApp(this.state, this.elements);
   }

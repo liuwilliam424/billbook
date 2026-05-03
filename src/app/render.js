@@ -38,7 +38,19 @@ function renderEmptyState(state, elements, view) {
 
   elements.emptyStateTitle.textContent = view.title;
   elements.emptyStateBody.textContent = view.body;
-  elements.emptyStateButton.textContent = view.mode === "no-folder" ? "Choose Folder" : "New Entry";
+  elements.emptyStateButton.textContent = getEmptyStateButtonLabel(view.mode);
+}
+
+function getEmptyStateButtonLabel(mode) {
+  if (mode === "no-folder") {
+    return "Choose Folder";
+  }
+
+  if (mode === "missing-folder") {
+    return "Locate Folder";
+  }
+
+  return "New Entry";
 }
 
 export function renderEditor(state, elements) {

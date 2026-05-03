@@ -8,6 +8,15 @@ export function getEditorView(state) {
     };
   }
 
+  if (state.journalDirectoryMissing) {
+    return {
+      mode: "missing-folder",
+      subtitle: "Journal folder missing",
+      title: "Journal folder not found.",
+      body: "The saved journal location is no longer available. Locate it again or choose a new folder."
+    };
+  }
+
   if (!state.currentEntry) {
     return {
       mode: "no-selection",
