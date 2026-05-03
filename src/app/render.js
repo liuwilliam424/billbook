@@ -1,4 +1,4 @@
-import { getBasename, shortenPath, snapshotEntry } from "./utils.js";
+import { getBasename, getFolderName, shortenPath, snapshotEntry } from "./utils.js";
 import { renderEntriesTree } from "./sidebar.js";
 import { getEditorView } from "./view-state.js";
 
@@ -31,14 +31,23 @@ function renderEmptyState(state, elements, view) {
   const showEmptyState = view.mode !== "editor";
 
   elements.emptyState.classList.toggle("is-hidden", !showEmptyState);
+  elements.emptyState.classList.toggle("is-blank", view.mode === "no-selection");
 
   if (!showEmptyState) {
+    return;
+  }
+
+  if (view.mode === "no-selection") {
+    elements.emptyStateTitle.textContent = "";
+    elements.emptyStateBody.textContent = "";
+    elements.emptyStateButton.classList.add("is-hidden");
     return;
   }
 
   elements.emptyStateTitle.textContent = view.title;
   elements.emptyStateBody.textContent = view.body;
   elements.emptyStateButton.textContent = getEmptyStateButtonLabel(view.mode);
+  elements.emptyStateButton.classList.remove("is-hidden");
 }
 
 function getEmptyStateButtonLabel(mode) {
@@ -69,7 +78,9 @@ export function renderEditor(state, elements) {
 }
 
 export function renderChrome(state, elements) {
-  elements.directoryLabel.textContent = shortenPath(state.journalDirectory);
+  elements.directoryName.textContent = state.journalDirectory ? getFolderName(state.journalDirectory) : "No folder selected";
+  elements.directoryPath.textContent = state.journalDirectory ? shortenPath(state.journalDirectory) : "";
+  elements.directoryPath.classList.toggle("is-hidden", !state.journalDirectory);
   elements.conflictBar.classList.toggle("is-hidden", !state.hasExternalChanges);
   elements.conflictMessage.textContent = state.externalChangeMessage || "This note changed outside Billbook.";
   renderSaveStatus(state, elements);

@@ -25,6 +25,10 @@ export function getBasename(filePath) {
   return parts[parts.length - 1] || filePath;
 }
 
+export function getFolderName(filePath) {
+  return getBasename(filePath);
+}
+
 export function createBlankDraft() {
   const now = new Date();
   const date = [

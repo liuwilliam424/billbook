@@ -1,6 +1,7 @@
 export function getElements() {
   return {
-    directoryLabel: document.querySelector("#directory-label"),
+    directoryName: document.querySelector("#directory-name"),
+    directoryPath: document.querySelector("#directory-path"),
     chooseFolderButton: document.querySelector("#choose-folder-button"),
     emptyStateButton: document.querySelector("#empty-state-button"),
     newEntryButton: document.querySelector("#new-entry-button"),
