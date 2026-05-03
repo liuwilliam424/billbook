@@ -1,30 +1,118 @@
 # Billbook
 
-a local-first markdown journal for writing every day
+Billbook is a local-first Electron journal for writing every day.
+Each journal entry is stored as a real Markdown file in a folder you choose outside this repo.
 
-## What It Is
+## What You Are Looking At
 
-Billbook is a macOS Electron journaling app with an Apple Notes-inspired layout.
-Each entry is stored as a real Markdown file in a folder you choose outside the repo.
+Billbook is split into three layers:
 
-## Features
+1. `electron/`
+   The desktop side of the app. This layer owns windows, dialogs, filesystem access, file watching, and app lifecycle.
+2. `electron/preload.js`
+   The safe bridge between Electron and the browser UI.
+3. `src/`
+   The frontend window that renders the journal UI and handles user interactions.
 
-- two-pane notes layout
-- manual save flow
-- warning on close with unsaved changes
-- external file change detection
-- Markdown-backed entries with simple frontmatter
-- entries grouped by year, month, and Monday-based week
+If you are new to Electron, the important idea is:
+
+- the `main process` is the desktop app supervisor
+- the `renderer` is basically the app UI running in a browser window
+- the `preload` script is the narrow bridge between them
+
+## Billbook Architecture
+
+```mermaid
+flowchart LR
+  A["Renderer UI (src/)"] --> B["Journal Gateway (src/app/journal-gateway.js)"]
+  B --> C["Preload Bridge (electron/preload.js)"]
+  C --> D["Main Process (electron/main.js)"]
+  D --> E["Journal Store (electron/lib/journal-store.js)"]
+  D --> F["Settings Store (electron/lib/settings-store.js)"]
+  E --> G["Markdown files on disk"]
+```
+
+## Folder Guide
+
+- `electron/main.js`
+  App lifecycle, IPC handlers, native dialogs, dirty-close flow, folder watching.
+- `electron/preload.js`
+  Exposes the small `window.journalApp` API to the renderer.
+- `electron/lib/journal-store.js`
+  Pure filesystem and Markdown persistence logic.
+- `electron/lib/settings-store.js`
+  Stores Billbook app settings like the selected journal directory.
+- `src/renderer.js`
+  The renderer entrypoint. It wires the Electron bridge to the app controller.
+- `src/app/app-controller.js`
+  The main frontend workflow/controller layer.
+- `src/app/journal-gateway.js`
+  Adapter over the preload API. This keeps the controller unaware of Electron details.
+- `src/app/render.js`
+  UI rendering for the main editor chrome and top-level states.
+- `src/app/sidebar.js`
+  Sidebar DOM rendering.
+- `src/app/entry-tree.js`
+  Pure data shaping for the year -> month -> week sidebar structure.
+- `src/app/state.js`
+  Initial app state.
+- `src/app/view-state.js`
+  Derived editor screen modes like `no-folder`, `missing-folder`, and `editor`.
+- `src/app/utils.js`
+  Shared pure helpers for dates, snapshots, and labels.
+- `src/styles.css`
+  All UI styling.
+
+For more detail:
+
+- [electron/README.md](./electron/README.md)
+- [src/app/README.md](./src/app/README.md)
+
+## Separation Of Concerns
+
+The current rule of thumb is:
+
+- if code touches Electron, dialogs, filesystem APIs, or app windows, it belongs in `electron/`
+- if code talks to `window.journalApp`, it should live in `src/app/journal-gateway.js`
+- if code is pure app logic or data transformation, it belongs in `src/app/*.js`
+- if code creates or updates DOM nodes, it belongs in `render.js`, `sidebar.js`, or `dom.js`
+
+That separation is intentional. It makes the renderer easier to reason about and keeps Billbook's business logic less coupled to Electron.
+
+## How A Save Works
+
+When you click `Save`, this is roughly what happens:
+
+1. The renderer controller gathers the current `date`, `title`, and `content`.
+2. The renderer calls the journal gateway.
+3. The gateway forwards that request through the preload bridge.
+4. The Electron main process receives the IPC request.
+5. `electron/lib/journal-store.js` writes the Markdown file to disk.
+6. The saved entry comes back through the same path to the renderer.
+7. The renderer updates UI state and clears the dirty flag.
 
 ## Journal Storage
 
 Billbook stores journal entries outside this repo.
-When you open the app, choose any folder you want to use as your journal vault.
+When you open the app, choose any folder you want to use as your journal directory.
 
 Each entry is saved as a Markdown file with a name like:
 
 ```text
 2026-04-18-a1b2c3d4.md
+```
+
+The file contains simple frontmatter and a Markdown body:
+
+```md
+---
+title: "Evening Reflection"
+date: "2026-04-18"
+createdAt: "2026-04-18T23:10:00.000Z"
+updatedAt: "2026-04-18T23:18:00.000Z"
+---
+
+This is the journal content.
 ```
 
 ## Local Development
@@ -35,7 +123,7 @@ npm install
 npm start
 ```
 
-## Build A Real macOS App
+## Build A macOS App
 
 ```bash
 cd /path/to/billbook
@@ -63,8 +151,6 @@ That copies the app into:
 ~/Applications/Billbook.app
 ```
 
-and asks Spotlight to index it.
-
 ## Full Setup On Another Mac
 
 ```bash
@@ -74,10 +160,9 @@ npm install
 npm run setup:mac
 ```
 
-After that, open `Billbook` from `~/Applications` or search for it in Spotlight.
+## Current Constraints
 
-## Notes
-
-- this project currently builds a local `.app` bundle for macOS
-- it is ad-hoc signed, not notarized
-- the default Electron icon is still in use for now
+- macOS only for now
+- local files are the source of truth
+- app is ad-hoc signed, not notarized
+- still uses the default Electron icon

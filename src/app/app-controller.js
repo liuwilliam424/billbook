@@ -11,8 +11,8 @@ import {
 import { getEditorView } from "./view-state.js";
 
 export class BillbookApp {
-  constructor(api) {
-    this.api = api;
+  constructor(gateway) {
+    this.gateway = gateway;
     this.state = createInitialState();
     this.elements = getElements();
   }
@@ -52,7 +52,7 @@ export class BillbookApp {
   }
 
   syncDirtyState() {
-    void this.api.app.setDirty(isDirty(this.state));
+    void this.gateway.setDirty(isDirty(this.state));
     renderSaveStatus(this.state, this.elements);
   }
 
@@ -104,7 +104,7 @@ export class BillbookApp {
       return true;
     }
 
-    const settings = await this.api.settings.chooseJournalDirectory();
+    const settings = await this.gateway.chooseJournalDirectory();
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
     renderChrome(this.state, this.elements);
@@ -119,7 +119,7 @@ export class BillbookApp {
 
   async loadEntries({ preserveSelection = true } = {}) {
     const hadUnsavedChanges = isDirty(this.state);
-    const { journalDirectory, journalDirectoryMissing, entries } = await this.api.journal.listEntries();
+    const { journalDirectory, journalDirectoryMissing, entries } = await this.gateway.listEntries();
     this.state.journalDirectory = journalDirectory;
     this.state.journalDirectoryMissing = Boolean(journalDirectoryMissing);
     this.state.entries = entries;
@@ -165,7 +165,7 @@ export class BillbookApp {
   }
 
   async loadEntry(filePath) {
-    const entry = await this.api.journal.readEntry(filePath);
+    const entry = await this.gateway.readEntry(filePath);
     this.setCurrentEntry(entry);
     renderApp(this.state, this.elements);
   }
@@ -209,7 +209,7 @@ export class BillbookApp {
     }
 
     try {
-      const { entry } = await this.api.journal.saveEntry(this.state.currentEntry);
+      const { entry } = await this.gateway.saveEntry(this.state.currentEntry);
       this.state.entries = this.state.entries.filter((item) => item.filePath !== this.state.selectedFilePath);
       this.setCurrentEntry(entry);
       await this.loadEntries();
@@ -258,7 +258,7 @@ export class BillbookApp {
       return;
     }
 
-    const settings = await this.api.settings.chooseJournalDirectory();
+    const settings = await this.gateway.chooseJournalDirectory();
     const previousDirectory = this.state.journalDirectory;
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
@@ -405,15 +405,15 @@ export class BillbookApp {
       await this.saveCurrentEntry();
     });
 
-    this.api.events.onDirectoryChanged(async () => {
+    this.gateway.onDirectoryChanged(async () => {
       await this.handleExternalChanges();
     });
 
-    this.api.app.onSaveBeforeClose(async () => {
+    this.gateway.onSaveBeforeClose(async () => {
       const saved = await this.saveCurrentEntry();
 
       if (saved) {
-        await this.api.app.closeAfterSave();
+        await this.gateway.closeAfterSave();
       }
     });
   }
@@ -421,7 +421,7 @@ export class BillbookApp {
   async initialize() {
     this.bindEvents();
 
-    const settings = await this.api.settings.get();
+    const settings = await this.gateway.loadSettings();
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
     await this.loadEntries({ preserveSelection: false });
