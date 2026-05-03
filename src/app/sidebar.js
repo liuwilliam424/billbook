@@ -1,5 +1,5 @@
 import { groupEntries } from "./entry-tree.js";
-import { formatDateLong, getSelectedWeekKey } from "./utils.js";
+import { formatDateInline, getSelectedWeekKey, getSelectedYearKey } from "./utils.js";
 
 export function renderEntriesTree(state, elements) {
   elements.entriesTree.innerHTML = "";
@@ -29,16 +29,37 @@ export function renderEntriesTree(state, elements) {
   }
 
   const groupedEntries = groupEntries(state.entries);
+  const selectedYearKey = getSelectedYearKey(state.currentEntry);
   const selectedWeekKey = getSelectedWeekKey(state.currentEntry);
 
   for (const yearGroup of groupedEntries) {
     const yearBlock = document.createElement("section");
     yearBlock.className = "group-block";
 
-    const yearHeading = document.createElement("h2");
+    const yearHeading = document.createElement("button");
+    yearHeading.type = "button";
     yearHeading.className = "group-heading";
-    yearHeading.textContent = yearGroup.yearKey;
+    yearHeading.dataset.yearKey = yearGroup.yearKey;
+
+    const yearLabel = document.createElement("span");
+    yearLabel.className = "group-heading-label";
+    yearLabel.textContent = yearGroup.yearKey;
+
+    const yearMeta = document.createElement("span");
+    yearMeta.className = "group-heading-meta";
+    yearMeta.textContent = `${yearGroup.months.length}`;
+
+    yearHeading.append(yearLabel, yearMeta);
     yearBlock.append(yearHeading);
+
+    const monthsWrap = document.createElement("div");
+    monthsWrap.className = "group-sections";
+    const isYearCollapsed = state.collapsedYears.has(yearGroup.yearKey) && yearGroup.yearKey !== selectedYearKey;
+
+    if (isYearCollapsed) {
+      monthsWrap.classList.add("is-hidden");
+      yearHeading.classList.add("is-collapsed");
+    }
 
     for (const monthGroup of yearGroup.months) {
       const monthBlock = document.createElement("section");
@@ -88,15 +109,19 @@ export function renderEntriesTree(state, elements) {
             button.classList.add("is-selected");
           }
 
+          const header = document.createElement("div");
+          header.className = "entry-row";
+
           const title = document.createElement("p");
           title.className = "entry-title";
           title.textContent = entry.title.trim() || "Untitled";
 
           const meta = document.createElement("p");
           meta.className = "entry-meta";
-          meta.textContent = formatDateLong(entry.date);
+          meta.textContent = formatDateInline(entry.date);
 
-          button.append(title, meta);
+          header.append(title, meta);
+          button.append(header);
           list.append(button);
         }
 
@@ -104,9 +129,10 @@ export function renderEntriesTree(state, elements) {
         monthBlock.append(weekBlock);
       }
 
-      yearBlock.append(monthBlock);
+      monthsWrap.append(monthBlock);
     }
 
+    yearBlock.append(monthsWrap);
     elements.entriesTree.append(yearBlock);
   }
 }

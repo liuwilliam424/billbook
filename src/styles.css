@@ -182,34 +182,65 @@ textarea {
 .entries-tree {
   flex: 1;
   overflow: auto;
-  padding: 18px 14px 28px;
+  padding: 16px 12px 24px;
 }
 
 .group-block + .group-block {
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 .group-heading {
-  margin: 0 0 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 4px 2px 8px;
+  border: 0;
+  background: transparent;
+  text-align: left;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+  cursor: pointer;
 }
 
-.month-block + .month-block {
-  margin-top: 18px;
+.group-heading:hover {
+  color: var(--ink);
+}
+
+.group-heading-label,
+.group-heading-meta {
+  pointer-events: none;
+}
+
+.group-heading-meta {
+  min-width: 1.25rem;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.group-sections {
+  display: grid;
+  gap: 14px;
+}
+
+.month-block {
+  display: grid;
+  gap: 6px;
 }
 
 .month-heading {
-  margin: 0 0 8px;
-  font-size: 0.9rem;
+  margin: 0;
+  padding-left: 2px;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--ink);
 }
 
 .week-block + .week-block {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .week-heading {
@@ -218,7 +249,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  padding: 8px 2px;
+  padding: 6px 2px;
   border: 0;
   background: transparent;
   text-align: left;
@@ -249,8 +280,8 @@ textarea {
 
 .entry-list {
   display: grid;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 2px;
   padding-left: 8px;
 }
 
@@ -259,8 +290,8 @@ textarea {
   text-align: left;
   border: 1px solid var(--line);
   background: transparent;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 9px;
+  padding: 8px 10px;
   cursor: pointer;
   transition:
     background-color 160ms ease,
@@ -277,16 +308,32 @@ textarea {
   border-color: rgba(31, 31, 31, 0.18);
 }
 
+.entry-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .entry-title {
   margin: 0;
   font-weight: 600;
   color: var(--ink);
+  font-size: 0.95rem;
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .entry-meta {
-  margin: 4px 0 0;
-  font-size: 0.82rem;
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
   color: var(--ink-soft);
+  text-align: right;
+  white-space: nowrap;
 }
 
 .sidebar-empty {

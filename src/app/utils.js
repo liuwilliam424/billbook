@@ -86,6 +86,13 @@ export function formatDateLong(dateString) {
   });
 }
 
+export function formatDateInline(dateString) {
+  return parseLocalDate(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric"
+  });
+}
+
 export function formatWeekStartLabel(dateString) {
   return getWeekStart(dateString).toLocaleDateString("en-US", {
     month: "short",
@@ -102,6 +109,14 @@ export function getMonthLabel(dateString) {
 
 export function getYearLabel(dateString) {
   return String(getWeekStart(dateString).getFullYear());
+}
+
+export function getSelectedYearKey(currentEntry) {
+  if (!currentEntry || !currentEntry.date) {
+    return "";
+  }
+
+  return getYearLabel(currentEntry.date);
 }
 
 export function getMonthKey(dateString) {

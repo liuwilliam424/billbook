@@ -5,6 +5,7 @@ import {
   cloneEntry,
   createBlankDraft,
   getSelectedWeekKey,
+  getSelectedYearKey,
   shortenPath,
   snapshotEntry
 } from "./utils.js";
@@ -138,15 +139,10 @@ export class BillbookApp {
     }
 
     if (!preserveSelection || !this.state.selectedFilePath) {
-      if (!this.state.currentEntry && this.state.entries.length > 0) {
-        await this.loadEntry(this.state.entries[0].filePath);
-        return;
-      }
-
-      if (!this.state.currentEntry && this.state.journalDirectory && this.state.entries.length === 0) {
-        this.setCurrentEntry(createBlankDraft());
-        renderApp(this.state, this.elements);
-        return;
+      if (!hadUnsavedChanges) {
+        this.state.currentEntry = null;
+        this.state.selectedFilePath = "";
+        this.state.savedSnapshot = "";
       }
 
       renderApp(this.state, this.elements);
@@ -366,6 +362,22 @@ export class BillbookApp {
     renderApp(this.state, this.elements);
   }
 
+  handleYearToggle(yearKey) {
+    const selectedYearKey = getSelectedYearKey(this.state.currentEntry);
+
+    if (!yearKey || yearKey === selectedYearKey) {
+      return;
+    }
+
+    if (this.state.collapsedYears.has(yearKey)) {
+      this.state.collapsedYears.delete(yearKey);
+    } else {
+      this.state.collapsedYears.add(yearKey);
+    }
+
+    renderApp(this.state, this.elements);
+  }
+
   bindEvents() {
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
@@ -378,6 +390,13 @@ export class BillbookApp {
     this.elements.contentInput.addEventListener("input", () => this.handleEditorInput());
 
     this.elements.entriesTree.addEventListener("click", async (event) => {
+      const yearButton = event.target.closest(".group-heading");
+
+      if (yearButton) {
+        this.handleYearToggle(yearButton.dataset.yearKey);
+        return;
+      }
+
       const weekButton = event.target.closest(".week-heading");
 
       if (weekButton) {
