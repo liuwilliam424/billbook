@@ -3,17 +3,17 @@
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --editor-serif: "Times New Roman", Times, serif;
-  --paper: #f5f3ed;
-  --panel: #fbfaf6;
-  --paper-soft: rgba(251, 250, 246, 0.98);
-  --ink: #1f1e1a;
-  --ink-soft: #6a665f;
-  --ink-faint: #888379;
-  --line: rgba(31, 30, 26, 0.11);
-  --line-strong: rgba(31, 30, 26, 0.2);
-  --accent: #46423c;
-  --accent-soft: rgba(70, 66, 60, 0.08);
-  --warning: #5c5852;
+  --paper: #f6f1f0;
+  --panel: #fbf8f7;
+  --paper-soft: rgba(251, 248, 247, 0.98);
+  --ink: #221f1d;
+  --ink-soft: #6f6664;
+  --ink-faint: #948886;
+  --line: rgba(50, 29, 30, 0.1);
+  --line-strong: rgba(92, 59, 60, 0.18);
+  --accent: #704f51;
+  --accent-soft: rgba(112, 79, 81, 0.06);
+  --warning: #704f51;
   --shadow: 0 2px 8px rgba(15, 15, 15, 0.04);
 }
 
@@ -34,7 +34,7 @@ body {
 
 body {
   overflow: hidden;
-  background: #f4f2eb;
+  background: #f6f1f0;
 }
 
 button,
@@ -56,7 +56,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   border-right: 1px solid var(--line);
-  background: #f3f1eb;
+  background: #f4efee;
 }
 
 .sidebar-header {
@@ -178,14 +178,14 @@ textarea {
 }
 
 .button-primary {
-  background: #4b4842;
-  color: #f7f5ef;
-  border-color: #4b4842;
+  background: var(--accent);
+  color: #faf7f6;
+  border-color: var(--accent);
 }
 
 .button-primary:hover {
-  background: #413d38;
-  border-color: #413d38;
+  background: #634648;
+  border-color: #634648;
 }
 
 .button-secondary {
@@ -196,7 +196,7 @@ textarea {
 
 .button-secondary:hover {
   border-color: var(--line-strong);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 252, 252, 0.92);
 }
 
 .entries-tree {
@@ -348,12 +348,12 @@ textarea {
 }
 
 .entry-button:hover {
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 248, 248, 0.48);
 }
 
 .entry-button.is-selected {
-  background: rgba(255, 255, 255, 0.52);
-  border-left-color: rgba(31, 30, 26, 0.22);
+  background: rgba(255, 250, 250, 0.62);
+  border-left-color: rgba(112, 79, 81, 0.24);
 }
 
 .entry-row {
@@ -399,7 +399,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   padding: 0 26px 24px 20px;
-  background: #f6f4ee;
+  background: #f7f3f2;
 }
 
 .editor-drag-strip {
@@ -433,7 +433,7 @@ textarea {
 }
 
 .editor-subtitle-button:not(:disabled):hover {
-  color: var(--ink);
+  color: var(--accent);
 }
 
 .editor-subtitle-button:disabled {
@@ -447,9 +447,9 @@ textarea {
   gap: 18px;
   margin: 0 0 16px;
   padding: 10px 12px;
-  border: 1px solid rgba(95, 95, 89, 0.18);
+  border: 1px solid rgba(112, 79, 81, 0.14);
   border-radius: 4px;
-  background: rgba(95, 95, 89, 0.05);
+  background: rgba(112, 79, 81, 0.04);
 }
 
 .conflict-message {
@@ -587,8 +587,8 @@ textarea {
 
 .text-input:focus,
 .section-input:focus {
-  border-color: rgba(75, 72, 66, 0.35);
-  box-shadow: 0 0 0 3px rgba(75, 72, 66, 0.08);
+  border-color: rgba(112, 79, 81, 0.28);
+  box-shadow: 0 0 0 3px rgba(112, 79, 81, 0.07);
   background: #ffffff;
 }
 
@@ -649,9 +649,9 @@ textarea {
   bottom: 24px;
   max-width: min(480px, calc(100vw - 48px));
   padding: 10px 12px;
-  border: 1px solid rgba(79, 92, 77, 0.18);
+  border: 1px solid rgba(112, 79, 81, 0.16);
   border-radius: 4px;
-  background: rgba(250, 249, 246, 0.96);
+  background: rgba(251, 248, 247, 0.96);
   box-shadow: 0 8px 18px rgba(15, 15, 15, 0.08);
   color: var(--ink);
   font-size: 0.88rem;
