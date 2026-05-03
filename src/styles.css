@@ -47,12 +47,14 @@ textarea {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
   height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   border-right: 1px solid var(--line);
   background: #f3f1eb;
 }
@@ -397,6 +399,7 @@ textarea {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 0 20px 20px;
   background: #f6f4ee;
 }
@@ -489,6 +492,7 @@ textarea {
   min-height: 0;
   flex: 1;
   overflow: auto;
+  scrollbar-gutter: stable;
   padding: 20px 22px 22px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.55);
