@@ -8,6 +8,7 @@ const rootDirectory = path.join(__dirname, "..");
 const sourceImage = path.join(rootDirectory, "imgs", "wizard_stick.jpg");
 const outputIcon = path.join(rootDirectory, "imgs", "billbook.icns");
 const iconsetDirectory = path.join(os.tmpdir(), `billbook-iconset-${process.pid}.iconset`);
+const normalizedImage = path.join(os.tmpdir(), `billbook-icon-normalized-${process.pid}.png`);
 
 const iconsetEntries = [
   ["icon_16x16.png", 16],
@@ -32,7 +33,36 @@ async function buildIcon() {
   }
 
   await fsp.rm(iconsetDirectory, { recursive: true, force: true });
+  await fsp.rm(normalizedImage, { force: true });
   await fsp.mkdir(iconsetDirectory, { recursive: true });
+
+  // Tighten the source art so the figure fills the app icon more naturally,
+  // then pad it back to a square white canvas before generating the iconset.
+  run("sips", [
+    "-s",
+    "format",
+    "png",
+    "-c",
+    "560",
+    "420",
+    "--cropOffset",
+    "0",
+    "90",
+    sourceImage,
+    "--out",
+    normalizedImage
+  ]);
+
+  run("sips", [
+    "-p",
+    "600",
+    "600",
+    "--padColor",
+    "FFFFFF",
+    normalizedImage,
+    "--out",
+    normalizedImage
+  ]);
 
   for (const [filename, size] of iconsetEntries) {
     run("sips", [
@@ -42,7 +72,7 @@ async function buildIcon() {
       "-z",
       String(size),
       String(size),
-      sourceImage,
+      normalizedImage,
       "--out",
       path.join(iconsetDirectory, filename)
     ]);
@@ -50,12 +80,14 @@ async function buildIcon() {
 
   run("iconutil", ["-c", "icns", iconsetDirectory, "-o", outputIcon]);
   await fsp.rm(iconsetDirectory, { recursive: true, force: true });
+  await fsp.rm(normalizedImage, { force: true });
 
   console.log(`Built icon at ${outputIcon}`);
 }
 
 buildIcon().catch(async (error) => {
   await fsp.rm(iconsetDirectory, { recursive: true, force: true });
+  await fsp.rm(normalizedImage, { force: true });
   console.error(error.message || error);
   process.exit(1);
 });
