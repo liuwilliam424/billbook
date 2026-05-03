@@ -377,6 +377,7 @@ textarea {
 .entry-title {
   margin: 0;
   font-weight: 400;
+  font-style: italic;
   color: var(--ink);
   font-size: 0.82rem;
   min-width: 0;
