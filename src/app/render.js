@@ -23,13 +23,18 @@ export function renderSaveStatus(state, elements) {
 
 function renderEditorSubtitle(state, elements, view) {
   if (view.mode === "editor") {
-    elements.editorSubtitle.textContent = state.currentEntry.filePath
+    const hasSavedFile = Boolean(state.currentEntry.filePath);
+    elements.editorSubtitle.textContent = hasSavedFile
       ? getBasename(state.currentEntry.filePath)
       : "New unsaved entry";
+    elements.editorSubtitle.disabled = !hasSavedFile;
+    elements.editorSubtitle.title = hasSavedFile ? "Reveal this entry in Finder." : "";
     return;
   }
 
   elements.editorSubtitle.textContent = view.subtitle;
+  elements.editorSubtitle.disabled = true;
+  elements.editorSubtitle.title = "";
 }
 
 function renderEmptyState(state, elements, view) {

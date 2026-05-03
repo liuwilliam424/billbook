@@ -8,6 +8,7 @@ export function createJournalGateway(api) {
     openJournalDirectory: () => api.settings.openJournalDirectory(),
     listEntries: () => api.journal.listEntries(),
     readEntry: (filePath) => api.journal.readEntry(filePath),
+    revealEntry: (filePath) => api.journal.revealEntry(filePath),
     saveEntry: (entry) => api.journal.saveEntry(entry),
     setDirty: (dirty) => api.app.setDirty(dirty),
     closeAfterSave: () => api.app.closeAfterSave(),

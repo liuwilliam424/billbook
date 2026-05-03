@@ -266,6 +266,27 @@ function registerJournalHandlers() {
     return readEntryFile(ensureInsideRoot(journalDirectory, filePath));
   });
 
+  ipcMain.handle("journal:reveal-entry", async (_event, filePath) => {
+    const { journalDirectory, exists } = await getJournalDirectoryState();
+
+    if (!journalDirectory) {
+      throw new Error("No journal directory configured.");
+    }
+
+    if (!exists) {
+      throw new Error("The selected journal folder could not be found.");
+    }
+
+    const safeFilePath = ensureInsideRoot(journalDirectory, filePath);
+
+    if (!(await pathExists(safeFilePath))) {
+      throw new Error("The current entry file could not be found.");
+    }
+
+    shell.showItemInFolder(safeFilePath);
+    return true;
+  });
+
   ipcMain.handle("journal:save-entry", async (_event, entry) => {
     const { journalDirectory, exists } = await getJournalDirectoryState();
 

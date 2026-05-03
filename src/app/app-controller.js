@@ -333,6 +333,22 @@ export class BillbookApp {
     }
   }
 
+  async handleRevealCurrentEntry() {
+    if (!this.state.selectedFilePath) {
+      return;
+    }
+
+    try {
+      await this.gateway.revealEntry(this.state.selectedFilePath);
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Entry unavailable",
+        body: error.message || "The current entry could not be shown in Finder.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
   handleEditorInput() {
     this.updateCurrentEntryFromInputs();
     this.syncDirtyState();
@@ -465,6 +481,7 @@ export class BillbookApp {
 
   bindEvents() {
     this.elements.directoryLink.addEventListener("click", () => this.handleOpenJournalDirectory());
+    this.elements.editorSubtitle.addEventListener("click", () => this.handleRevealCurrentEntry());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
     this.elements.newEntryButton.addEventListener("click", () => this.handleNewEntry());
