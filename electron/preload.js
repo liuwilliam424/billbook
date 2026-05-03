@@ -3,7 +3,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("journalApp", {
   settings: {
     get: () => ipcRenderer.invoke("settings:get"),
-    chooseJournalDirectory: () => ipcRenderer.invoke("settings:choose-journal-directory")
+    chooseJournalDirectory: () => ipcRenderer.invoke("settings:choose-journal-directory"),
+    openJournalDirectory: () => ipcRenderer.invoke("settings:open-journal-directory")
   },
   journal: {
     listEntries: () => ipcRenderer.invoke("journal:list-entries"),

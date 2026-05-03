@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
@@ -199,6 +199,26 @@ function registerSettingsHandlers() {
       ...settings,
       journalDirectoryMissing: false
     };
+  });
+
+  ipcMain.handle("settings:open-journal-directory", async () => {
+    const { journalDirectory, exists } = await getJournalDirectoryState();
+
+    if (!journalDirectory) {
+      return false;
+    }
+
+    if (!exists) {
+      throw new Error("The selected journal folder could not be found.");
+    }
+
+    const errorMessage = await shell.openPath(journalDirectory);
+
+    if (errorMessage) {
+      throw new Error(errorMessage);
+    }
+
+    return true;
   });
 }
 

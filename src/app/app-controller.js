@@ -4,6 +4,7 @@ import { createInitialState } from "./state.js";
 import {
   cloneEntry,
   createBlankDraft,
+  getBasename,
   getSelectedMonthKey,
   getSelectedWeekKey,
   getSelectedYearKey,
@@ -17,6 +18,7 @@ export class BillbookApp {
     this.gateway = gateway;
     this.state = createInitialState();
     this.elements = getElements();
+    this.internalWriteGuards = new Map();
   }
 
   showToast(message) {
@@ -56,6 +58,38 @@ export class BillbookApp {
   syncDirtyState() {
     void this.gateway.setDirty(isDirty(this.state));
     renderSaveStatus(this.state, this.elements);
+  }
+
+  markInternalWrite(filePath) {
+    if (!filePath) {
+      return;
+    }
+
+    this.internalWriteGuards.set(getBasename(filePath), Date.now() + 1200);
+  }
+
+  shouldIgnoreDirectoryChange(payload) {
+    const filename = payload?.filename ? getBasename(payload.filename) : "";
+
+    if (!filename) {
+      return false;
+    }
+
+    const now = Date.now();
+
+    for (const [guardedFile, expiresAt] of this.internalWriteGuards.entries()) {
+      if (expiresAt <= now) {
+        this.internalWriteGuards.delete(guardedFile);
+      }
+    }
+
+    const expiresAt = this.internalWriteGuards.get(filename);
+
+    if (!expiresAt || expiresAt <= now) {
+      return false;
+    }
+
+    return true;
   }
 
   async showConfirmDialog({ title, body, actions }) {
@@ -206,7 +240,10 @@ export class BillbookApp {
     }
 
     try {
+      const previousFilePath = this.state.selectedFilePath;
       const { entry } = await this.gateway.saveEntry(this.state.currentEntry);
+      this.markInternalWrite(previousFilePath);
+      this.markInternalWrite(entry.filePath);
       this.state.entries = this.state.entries.filter((item) => item.filePath !== this.state.selectedFilePath);
       this.setCurrentEntry(entry);
       await this.loadEntries();
@@ -269,13 +306,29 @@ export class BillbookApp {
     }
   }
 
+  async handleOpenJournalDirectory() {
+    try {
+      await this.gateway.openJournalDirectory();
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Folder unavailable",
+        body: error.message || "The journal folder could not be opened.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
   handleEditorInput() {
     this.updateCurrentEntryFromInputs();
     this.syncDirtyState();
     renderEditor(this.state, this.elements);
   }
 
-  async handleExternalChanges() {
+  async handleExternalChanges(payload) {
+    if (this.shouldIgnoreDirectoryChange(payload)) {
+      return;
+    }
+
     const currentPath = this.state.selectedFilePath;
     const dirty = isDirty(this.state);
 
@@ -396,10 +449,10 @@ export class BillbookApp {
   }
 
   bindEvents() {
+    this.elements.directoryLink.addEventListener("click", () => this.handleOpenJournalDirectory());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
     this.elements.newEntryButton.addEventListener("click", () => this.handleNewEntry());
-    this.elements.saveButton.addEventListener("click", () => this.saveCurrentEntry());
     this.elements.reloadEntryButton.addEventListener("click", () => this.handleReloadFromDisk());
     this.elements.keepMineButton.addEventListener("click", () => this.handleKeepMine());
     this.elements.dateInput.addEventListener("input", () => this.handleEditorInput());
@@ -448,8 +501,8 @@ export class BillbookApp {
       await this.saveCurrentEntry();
     });
 
-    this.gateway.onDirectoryChanged(async () => {
-      await this.handleExternalChanges();
+    this.gateway.onDirectoryChanged(async (payload) => {
+      await this.handleExternalChanges(payload);
     });
 
     this.gateway.onSaveBeforeClose(async () => {

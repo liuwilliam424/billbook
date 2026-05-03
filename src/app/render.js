@@ -10,10 +10,15 @@ export function renderSaveStatus(state, elements) {
   const dirty = isDirty(state);
   const conflict = state.hasExternalChanges;
 
-  elements.saveStatus.textContent = conflict ? "Conflict" : dirty ? "Unsaved" : "Saved";
+  elements.saveStatus.textContent = conflict ? "Conflict" : dirty ? "Unsaved" : "";
+  elements.saveStatus.title = conflict
+    ? "This note changed outside Billbook."
+    : dirty
+      ? "Press Command-S to save."
+      : "";
+  elements.saveStatus.classList.toggle("is-hidden", !conflict && !dirty);
   elements.saveStatus.classList.toggle("is-dirty", dirty && !conflict);
   elements.saveStatus.classList.toggle("is-conflict", conflict);
-  elements.saveButton.disabled = !state.currentEntry || !dirty;
 }
 
 function renderEditorSubtitle(state, elements, view) {
@@ -71,16 +76,13 @@ export function renderEditor(state, elements) {
 
   renderEditorSubtitle(state, elements, view);
   renderEmptyState(state, elements, view);
-
-  if (!showEditor) {
-    elements.saveButton.disabled = true;
-  }
 }
 
 export function renderChrome(state, elements) {
   elements.directoryName.textContent = state.journalDirectory ? getFolderName(state.journalDirectory) : "No folder selected";
   elements.directoryPath.textContent = state.journalDirectory ? shortenPath(state.journalDirectory) : "";
   elements.directoryPath.classList.toggle("is-hidden", !state.journalDirectory);
+  elements.directoryLink.disabled = !state.journalDirectory || state.journalDirectoryMissing;
   elements.conflictBar.classList.toggle("is-hidden", !state.hasExternalChanges);
   elements.conflictMessage.textContent = state.externalChangeMessage || "This note changed outside Billbook.";
   renderSaveStatus(state, elements);

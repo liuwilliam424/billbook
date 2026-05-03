@@ -1,11 +1,11 @@
 export function getElements() {
   return {
+    directoryLink: document.querySelector("#directory-link"),
     directoryName: document.querySelector("#directory-name"),
     directoryPath: document.querySelector("#directory-path"),
     chooseFolderButton: document.querySelector("#choose-folder-button"),
     emptyStateButton: document.querySelector("#empty-state-button"),
     newEntryButton: document.querySelector("#new-entry-button"),
-    saveButton: document.querySelector("#save-button"),
     saveStatus: document.querySelector("#save-status"),
     entriesTree: document.querySelector("#entries-tree"),
     editorForm: document.querySelector("#editor-form"),

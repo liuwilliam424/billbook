@@ -111,8 +111,34 @@ textarea {
   color: var(--ink-soft);
 }
 
+.directory-link {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+}
+
+.directory-link:not(:disabled) {
+  cursor: pointer;
+}
+
+.directory-link:not(:disabled):hover .directory-name {
+  color: var(--accent);
+}
+
+.directory-link:disabled {
+  cursor: default;
+}
+
 .directory-name {
-  margin: 7px 0 0;
+  margin: 0;
   font-size: 0.84rem;
   font-weight: 500;
   line-height: 1.35;
@@ -480,7 +506,7 @@ textarea {
 .editor-form-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
 }
 
 .editor-form-label {
@@ -494,6 +520,10 @@ textarea {
 .save-status-text {
   font-size: 0.74rem;
   color: var(--ink-soft);
+}
+
+.save-status-text:not(.is-hidden) {
+  cursor: help;
 }
 
 .save-status-text.is-dirty {
