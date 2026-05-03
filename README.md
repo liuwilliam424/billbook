@@ -81,9 +81,9 @@ That separation is intentional. It makes the renderer easier to reason about and
 
 ## How A Save Works
 
-When you click `Save`, this is roughly what happens:
+When you press `Command-S`, this is roughly what happens:
 
-1. The renderer controller gathers the current `date`, `title`, and `content`.
+1. The renderer controller gathers the current `date`, `title`, and the five daily prompt sections.
 2. The renderer calls the journal gateway.
 3. The gateway forwards that request through the preload bridge.
 4. The Electron main process receives the IPC request.
@@ -102,7 +102,7 @@ Each entry is saved as a Markdown file with a name like:
 2026-04-18-a1b2c3d4.md
 ```
 
-The file contains simple frontmatter and a Markdown body:
+The file contains simple frontmatter and a fixed Markdown prompt structure:
 
 ```md
 ---
@@ -112,7 +112,25 @@ createdAt: "2026-04-18T23:10:00.000Z"
 updatedAt: "2026-04-18T23:18:00.000Z"
 ---
 
-This is the journal content.
+## Feelings
+
+Calm, a little tired, still focused.
+
+## Moments
+
+Started shaping a better daily writing routine.
+
+## Predictions
+
+Tomorrow will feel easier if I keep the entry short.
+
+## News
+
+Did not read much today.
+
+## Happiness
+
+A walk and a quiet dinner.
 ```
 
 ## Local Development

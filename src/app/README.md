@@ -25,6 +25,8 @@ The renderer is intentionally split into three kinds of modules:
   Pure transformation from a flat entry array into the nested sidebar grouping structure.
 - `utils.js`
   Shared pure helpers.
+- `prompts.js`
+  Defines the fixed daily prompt schema used by the editor and draft snapshots.
 - `render.js`
   Top-level renderer for editor chrome and screen states.
 - `sidebar.js`
@@ -93,6 +95,8 @@ Examples:
 
 - Add a new native file operation:
   Start in `electron/`, then expose it through `journal-gateway.js`.
+- Change the daily prompt structure:
+  Update `prompts.js`, then adjust the journal store serialization and editor markup together.
 - Add a new editor banner or visual state:
   Put rendering in `render.js`, with any derived mode logic in `view-state.js`.
 - Add a new sidebar grouping rule:

@@ -3,6 +3,20 @@ const fs = require("node:fs");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
 
+const DAILY_PROMPTS = [
+  { key: "feelings", heading: "Feelings" },
+  { key: "moments", heading: "Moments" },
+  { key: "predictions", heading: "Predictions" },
+  { key: "news", heading: "News" },
+  { key: "happiness", heading: "Happiness" }
+];
+
+const PROMPT_KEY_BY_HEADING = new Map(
+  DAILY_PROMPTS.map(({ key, heading }) => [heading.toLowerCase(), key])
+);
+
+const LEGACY_CONTENT_SECTION_KEY = "moments";
+
 function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -84,6 +98,104 @@ function stringifyFrontmatterValue(value) {
   return JSON.stringify(String(value));
 }
 
+function createEmptySections() {
+  return Object.fromEntries(DAILY_PROMPTS.map(({ key }) => [key, ""]));
+}
+
+function trimSurroundingBlankLines(value) {
+  return value.replace(/^\n+|\n+$/g, "");
+}
+
+function normalizeSectionText(value) {
+  return String(value || "").replace(/\r\n/g, "\n");
+}
+
+function normalizeSections(sectionsLike = {}) {
+  const sections = createEmptySections();
+
+  for (const { key } of DAILY_PROMPTS) {
+    if (typeof sectionsLike[key] === "string") {
+      sections[key] = normalizeSectionText(sectionsLike[key]);
+    }
+  }
+
+  return sections;
+}
+
+function parseSectionsFromContent(content) {
+  const normalized = normalizeSectionText(content);
+  const lines = normalized.split("\n");
+  const sections = createEmptySections();
+  const preamble = [];
+  let currentSectionKey = "";
+  let matchedPromptHeading = false;
+
+  for (const line of lines) {
+    const match = line.match(/^##\s+(.+?)\s*$/);
+    const promptKey = match ? PROMPT_KEY_BY_HEADING.get(match[1].trim().toLowerCase()) : "";
+
+    if (promptKey) {
+      currentSectionKey = promptKey;
+      matchedPromptHeading = true;
+      continue;
+    }
+
+    if (currentSectionKey) {
+      sections[currentSectionKey] = sections[currentSectionKey]
+        ? `${sections[currentSectionKey]}\n${line}`
+        : line;
+      continue;
+    }
+
+    preamble.push(line);
+  }
+
+  if (!matchedPromptHeading) {
+    sections[LEGACY_CONTENT_SECTION_KEY] = trimSurroundingBlankLines(normalized);
+    return sections;
+  }
+
+  for (const { key } of DAILY_PROMPTS) {
+    sections[key] = trimSurroundingBlankLines(sections[key]);
+  }
+
+  const preambleText = trimSurroundingBlankLines(preamble.join("\n"));
+
+  if (preambleText) {
+    sections[LEGACY_CONTENT_SECTION_KEY] = sections[LEGACY_CONTENT_SECTION_KEY]
+      ? `${preambleText}\n\n${sections[LEGACY_CONTENT_SECTION_KEY]}`
+      : preambleText;
+  }
+
+  return sections;
+}
+
+function summarizeSections(sectionsLike = {}) {
+  const sections = normalizeSections(sectionsLike);
+
+  for (const { key } of DAILY_PROMPTS) {
+    const summary = sections[key]
+      .split("\n")
+      .map((line) => line.trim())
+      .find(Boolean);
+
+    if (summary) {
+      return summary;
+    }
+  }
+
+  return "";
+}
+
+function serializeSections(sectionsLike = {}) {
+  const sections = normalizeSections(sectionsLike);
+
+  return DAILY_PROMPTS.map(({ key, heading }) => {
+    const body = trimSurroundingBlankLines(sections[key]);
+    return body ? `## ${heading}\n\n${body}` : `## ${heading}`;
+  }).join("\n\n");
+}
+
 function serializeEntry(entry) {
   const frontmatterLines = [
     "---",
@@ -95,7 +207,7 @@ function serializeEntry(entry) {
     ""
   ];
 
-  const content = entry.content || "";
+  const content = serializeSections(entry.sections);
   return `${frontmatterLines.join("\n")}${content.endsWith("\n") ? content : `${content}\n`}`;
 }
 
@@ -105,7 +217,11 @@ function sanitizeEntry(entryLike) {
   return {
     title: typeof entryLike.title === "string" ? entryLike.title : "",
     date: typeof entryLike.date === "string" && entryLike.date ? entryLike.date : formatDate(new Date()),
-    content: typeof entryLike.content === "string" ? entryLike.content : "",
+    sections: normalizeSections(
+      entryLike.sections && typeof entryLike.sections === "object"
+        ? entryLike.sections
+        : parseSectionsFromContent(typeof entryLike.content === "string" ? entryLike.content : "")
+    ),
     slug: typeof entryLike.slug === "string" && entryLike.slug ? entryLike.slug : "",
     createdAt: typeof entryLike.createdAt === "string" && entryLike.createdAt ? entryLike.createdAt : now,
     updatedAt: typeof entryLike.updatedAt === "string" && entryLike.updatedAt ? entryLike.updatedAt : now
@@ -204,18 +320,12 @@ function getSlugFromFilename(filePath) {
   return match ? match[1] : "";
 }
 
-function summarizeContent(content) {
-  return content
-    .split("\n")
-    .map((line) => line.trim())
-    .find(Boolean) || "";
-}
-
 async function readEntryFile(filePath) {
   const raw = await fsp.readFile(filePath, "utf8");
   const { frontmatter, content } = parseFrontmatter(raw);
   const stats = await fsp.stat(filePath);
   const fallbackDate = path.basename(filePath).slice(0, 10);
+  const sections = parseSectionsFromContent(content);
 
   return {
     filePath,
@@ -224,8 +334,8 @@ async function readEntryFile(filePath) {
     date: frontmatter.date || fallbackDate || formatDate(stats.mtime),
     createdAt: frontmatter.createdAt || stats.birthtime.toISOString(),
     updatedAt: frontmatter.updatedAt || stats.mtime.toISOString(),
-    content,
-    preview: summarizeContent(content)
+    sections,
+    preview: summarizeSections(sections)
   };
 }
 

@@ -488,6 +488,7 @@ textarea {
   gap: 16px;
   min-height: 0;
   flex: 1;
+  overflow: auto;
   padding: 20px 22px 22px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.55);
@@ -546,7 +547,7 @@ textarea {
 }
 
 .text-input,
-.content-input {
+.section-input {
   width: 100%;
   border: 1px solid rgba(31, 30, 26, 0.14);
   background: rgba(255, 255, 255, 0.82);
@@ -560,7 +561,7 @@ textarea {
 }
 
 .text-input:focus,
-.content-input:focus {
+.section-input:focus {
   border-color: rgba(75, 72, 66, 0.35);
   box-shadow: 0 0 0 3px rgba(75, 72, 66, 0.08);
   background: #ffffff;
@@ -579,9 +580,17 @@ textarea {
   letter-spacing: -0.02em;
 }
 
-.content-input {
-  min-height: 0;
-  height: 100%;
+.section-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.section-group {
+  gap: 7px;
+}
+
+.section-input {
+  min-height: 130px;
   resize: none;
   padding: 14px;
   font-family: var(--editor-serif);

@@ -1,4 +1,5 @@
 import { getElements } from "./dom.js";
+import { DAILY_PROMPTS, normalizeSections } from "./prompts.js";
 import { renderApp, renderChrome, renderEditor, renderSaveStatus, isDirty } from "./render.js";
 import { createInitialState } from "./state.js";
 import {
@@ -39,10 +40,24 @@ export class BillbookApp {
 
     this.elements.dateInput.value = entry.date || "";
     this.elements.titleInput.value = entry.title || "";
-    this.elements.contentInput.value = entry.content || "";
+    this.syncSectionInputs(entry.sections);
 
     renderEditor(this.state, this.elements);
     this.syncDirtyState();
+  }
+
+  syncSectionInputs(sectionsLike = {}) {
+    const sections = normalizeSections(sectionsLike);
+
+    for (const { key } of DAILY_PROMPTS) {
+      this.elements.sectionInputs[key].value = sections[key];
+    }
+  }
+
+  readSectionInputs() {
+    return Object.fromEntries(
+      DAILY_PROMPTS.map(({ key }) => [key, this.elements.sectionInputs[key].value])
+    );
   }
 
   updateCurrentEntryFromInputs() {
@@ -52,7 +67,7 @@ export class BillbookApp {
 
     this.state.currentEntry.date = this.elements.dateInput.value;
     this.state.currentEntry.title = this.elements.titleInput.value;
-    this.state.currentEntry.content = this.elements.contentInput.value;
+    this.state.currentEntry.sections = this.readSectionInputs();
   }
 
   syncDirtyState() {
@@ -457,7 +472,10 @@ export class BillbookApp {
     this.elements.keepMineButton.addEventListener("click", () => this.handleKeepMine());
     this.elements.dateInput.addEventListener("input", () => this.handleEditorInput());
     this.elements.titleInput.addEventListener("input", () => this.handleEditorInput());
-    this.elements.contentInput.addEventListener("input", () => this.handleEditorInput());
+
+    for (const input of Object.values(this.elements.sectionInputs)) {
+      input.addEventListener("input", () => this.handleEditorInput());
+    }
 
     this.elements.entriesTree.addEventListener("click", async (event) => {
       const yearButton = event.target.closest(".group-heading");

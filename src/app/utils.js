@@ -1,3 +1,5 @@
+import { DAILY_PROMPTS, createEmptySections, normalizeSections } from "./prompts.js";
+
 export function shortenPath(filePath) {
   if (!filePath) {
     return "No folder selected";
@@ -44,7 +46,7 @@ export function createBlankDraft() {
     slug: "",
     title: "",
     date,
-    content: "",
+    sections: createEmptySections(),
     createdAt: timestamp,
     updatedAt: timestamp
   };
@@ -59,12 +61,14 @@ export function snapshotEntry(entry) {
     return "";
   }
 
+  const sections = normalizeSections(entry.sections);
+
   return JSON.stringify({
     filePath: entry.filePath || "",
     slug: entry.slug || "",
     title: entry.title || "",
     date: entry.date || "",
-    content: entry.content || ""
+    sections: Object.fromEntries(DAILY_PROMPTS.map(({ key }) => [key, sections[key] || ""]))
   });
 }
 

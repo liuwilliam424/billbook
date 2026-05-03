@@ -1,3 +1,5 @@
+import { DAILY_PROMPTS } from "./prompts.js";
+
 export function getElements() {
   return {
     directoryLink: document.querySelector("#directory-link"),
@@ -19,7 +21,9 @@ export function getElements() {
     emptyStateBody: document.querySelector("#empty-state-body"),
     dateInput: document.querySelector("#entry-date"),
     titleInput: document.querySelector("#entry-title"),
-    contentInput: document.querySelector("#entry-content"),
+    sectionInputs: Object.fromEntries(
+      DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}`)])
+    ),
     confirmDialog: document.querySelector("#confirm-dialog"),
     confirmTitle: document.querySelector("#confirm-title"),
     confirmBody: document.querySelector("#confirm-body"),

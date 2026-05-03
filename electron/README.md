@@ -82,6 +82,7 @@ The preload bridge keeps the UI code cleaner and easier to replace later.
 It should stay focused on:
 
 - Markdown frontmatter parsing
+- parsing and serializing the five daily prompt sections
 - entry file naming
 - week-based folder layout
 - safe file writes
