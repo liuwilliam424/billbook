@@ -3,17 +3,17 @@
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --editor-serif: "Times New Roman", Times, serif;
-  --paper: #f6f1f0;
-  --panel: #fbf8f7;
-  --paper-soft: rgba(251, 248, 247, 0.98);
+  --paper: #f5f3f2;
+  --panel: #fbfaf9;
+  --paper-soft: rgba(251, 250, 249, 0.98);
   --ink: #221f1d;
-  --ink-soft: #6f6664;
-  --ink-faint: #948886;
-  --line: rgba(50, 29, 30, 0.1);
-  --line-strong: rgba(92, 59, 60, 0.18);
-  --accent: #704f51;
-  --accent-soft: rgba(112, 79, 81, 0.06);
-  --warning: #704f51;
+  --ink-soft: #6d6665;
+  --ink-faint: #928786;
+  --line: rgba(53, 37, 38, 0.08);
+  --line-strong: rgba(92, 59, 60, 0.14);
+  --accent: #7a565a;
+  --accent-soft: rgba(122, 86, 90, 0.04);
+  --warning: #7a565a;
   --shadow: 0 2px 8px rgba(15, 15, 15, 0.04);
 }
 
@@ -34,7 +34,7 @@ body {
 
 body {
   overflow: hidden;
-  background: #f6f1f0;
+  background: #f7f5f4;
 }
 
 button,
@@ -56,7 +56,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   border-right: 1px solid var(--line);
-  background: #f4efee;
+  background: #f7f5f4;
 }
 
 .sidebar-header {
@@ -178,14 +178,25 @@ textarea {
 }
 
 .button-primary {
-  background: var(--accent);
-  color: #faf7f6;
-  border-color: var(--accent);
+  background: #6f5c5e;
+  color: #faf8f7;
+  border-color: #6f5c5e;
 }
 
 .button-primary:hover {
-  background: #634648;
-  border-color: #634648;
+  background: #655355;
+  border-color: #655355;
+}
+
+#new-entry-button.button-primary {
+  background: #954e56;
+  border-color: #954e56;
+  color: #fff9f8;
+}
+
+#new-entry-button.button-primary:hover {
+  background: #84464d;
+  border-color: #84464d;
 }
 
 .button-secondary {
@@ -348,12 +359,12 @@ textarea {
 }
 
 .entry-button:hover {
-  background: rgba(255, 248, 248, 0.48);
+  background: rgba(255, 251, 251, 0.44);
 }
 
 .entry-button.is-selected {
-  background: rgba(255, 250, 250, 0.62);
-  border-left-color: rgba(112, 79, 81, 0.24);
+  background: rgba(255, 252, 252, 0.58);
+  border-left-color: rgba(122, 86, 90, 0.18);
 }
 
 .entry-row {
@@ -399,7 +410,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   padding: 0 26px 24px 20px;
-  background: #f7f3f2;
+  background: #faf8f7;
 }
 
 .editor-drag-strip {
@@ -447,9 +458,9 @@ textarea {
   gap: 18px;
   margin: 0 0 16px;
   padding: 10px 12px;
-  border: 1px solid rgba(112, 79, 81, 0.14);
+  border: 1px solid rgba(122, 86, 90, 0.12);
   border-radius: 4px;
-  background: rgba(112, 79, 81, 0.04);
+  background: rgba(122, 86, 90, 0.03);
 }
 
 .conflict-message {
@@ -587,8 +598,8 @@ textarea {
 
 .text-input:focus,
 .section-input:focus {
-  border-color: rgba(112, 79, 81, 0.28);
-  box-shadow: 0 0 0 3px rgba(112, 79, 81, 0.07);
+  border-color: rgba(122, 86, 90, 0.2);
+  box-shadow: 0 0 0 3px rgba(122, 86, 90, 0.05);
   background: #ffffff;
 }
 
@@ -649,9 +660,9 @@ textarea {
   bottom: 24px;
   max-width: min(480px, calc(100vw - 48px));
   padding: 10px 12px;
-  border: 1px solid rgba(112, 79, 81, 0.16);
+  border: 1px solid rgba(122, 86, 90, 0.12);
   border-radius: 4px;
-  background: rgba(251, 248, 247, 0.96);
+  background: rgba(251, 250, 249, 0.96);
   box-shadow: 0 8px 18px rgba(15, 15, 15, 0.08);
   color: var(--ink);
   font-size: 0.88rem;
