@@ -132,7 +132,9 @@ async function fetchAccounts(accessUrl, query = {}) {
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(body || "Failed to fetch data from SimpleFIN.");
+    const error = new Error(body || "Failed to fetch data from SimpleFIN.");
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();

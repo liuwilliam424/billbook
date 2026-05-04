@@ -113,10 +113,12 @@ export class BillbookApp {
       const status = await this.gateway.getFinanceStatus();
       this.state.financeConnected = Boolean(status.connected);
       this.state.financeConfigured = Boolean(status.configured);
-      this.state.financeStatusError = "";
+      this.state.financeRequiresReconnect = Boolean(status.requiresReconnect);
+      this.state.financeStatusError = status.statusMessage || "";
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeRequiresReconnect = false;
       this.state.financeStatusError = error.message || "Status unavailable";
 
       if (showErrors) {
@@ -151,10 +153,12 @@ export class BillbookApp {
       const financeStatus = await this.gateway.autoConnectSimplefin();
       this.state.financeConnected = Boolean(financeStatus?.connected);
       this.state.financeConfigured = Boolean(financeStatus?.configured);
-      this.state.financeStatusError = "";
+      this.state.financeRequiresReconnect = Boolean(financeStatus?.requiresReconnect);
+      this.state.financeStatusError = financeStatus?.statusMessage || "";
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeRequiresReconnect = false;
       this.state.financeStatusError = error.message || "Status unavailable";
 
       if (showErrors) {
@@ -531,7 +535,7 @@ export class BillbookApp {
     if (!this.state.financeConnected || !this.state.financeConfigured) {
       return this.buildFinanceErrorText(
         !this.state.financeConnected
-          ? "SimpleFIN is not connected."
+          ? this.state.financeStatusError || "SimpleFIN is not connected."
           : "Finance accounts are not configured."
       );
     }

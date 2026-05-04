@@ -56,6 +56,10 @@ function getSimplefinStatusText(state) {
     return state.financeStatusError;
   }
 
+  if (state.financeRequiresReconnect) {
+    return "Re-login required";
+  }
+
   if (state.financeConnected && state.financeConfigured) {
     return "Connected • accounts set";
   }

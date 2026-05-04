@@ -3,6 +3,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 
 const { claimAccessUrl, extractSetupToken, fetchAccounts } = require("./simplefin-client");
+const STATUS_CACHE_MS = 30 * 60 * 1000;
 
 function toNumber(value) {
   const parsed = Number(value);
@@ -46,6 +47,54 @@ function summarizeErrors(errlist = []) {
         .map((error) => (error && typeof error.msg === "string" ? error.msg.trim() : ""))
         .filter(Boolean)
     : [];
+}
+
+function getStructuredErrors(errlist = []) {
+  return Array.isArray(errlist)
+    ? errlist.filter((error) => error && typeof error === "object")
+    : [];
+}
+
+function getPrimaryFinanceError(structuredErrors = []) {
+  const errors = getStructuredErrors(structuredErrors);
+
+  const reconnectError = errors.find((error) => {
+    const code = typeof error.code === "string" ? error.code : "";
+    return code === "con.auth" || code === "gen.auth";
+  });
+
+  if (reconnectError) {
+    return {
+      requiresReconnect: true,
+      message: reconnectError.msg || "Bank login required."
+    };
+  }
+
+  const connectionError = errors.find((error) => {
+    const code = typeof error.code === "string" ? error.code : "";
+    return code.startsWith("con.");
+  });
+
+  if (connectionError) {
+    return {
+      requiresReconnect: false,
+      message: connectionError.msg || "SimpleFIN reported a connection issue."
+    };
+  }
+
+  const accountError = errors.find((error) => {
+    const code = typeof error.code === "string" ? error.code : "";
+    return code.startsWith("act.");
+  });
+
+  if (accountError) {
+    return {
+      requiresReconnect: false,
+      message: accountError.msg || "SimpleFIN reported an account issue."
+    };
+  }
+
+  return null;
 }
 
 function buildConnectionsById(connections = []) {
@@ -251,6 +300,8 @@ function renderFinanceSection({ dateString, accounts, financeConfig }) {
 }
 
 function createFinanceService({ app, dialog, settingsStore, secureStore }) {
+  let statusCache = null;
+
   async function loadSecrets() {
     const secrets = await secureStore.load();
     return secrets && typeof secrets === "object" ? secrets : {};
@@ -271,6 +322,22 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
       simplefinConnectedHint: Boolean(connected)
     };
     await settingsStore.save(settings);
+  }
+
+  function clearStatusCache() {
+    statusCache = null;
+  }
+
+  function getConfiguredStatus(financeConfig, overrides = {}) {
+    return {
+      connected: false,
+      configured: financeConfig.netWorthAccountIds.length > 0 || financeConfig.spendingAccountIds.length > 0,
+      financeConfig,
+      requiresReconnect: false,
+      statusMessage: "",
+      warnings: [],
+      ...overrides
+    };
   }
 
   async function chooseSetupTokenFile() {
@@ -304,22 +371,67 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     return fetchAccounts(accessUrl, query);
   }
 
-  async function getStatus() {
+  async function getStatus({ forceRefresh = false } = {}) {
     const settings = await loadSettings();
     const accessUrl = await getAccessUrl();
     const financeConfig = normalizeFinanceConfig(settings.finance || {});
 
-    return {
-      connected: Boolean(accessUrl),
-      configured: financeConfig.netWorthAccountIds.length > 0 || financeConfig.spendingAccountIds.length > 0,
-      financeConfig
-    };
+    if (!accessUrl) {
+      const disconnectedStatus = getConfiguredStatus(financeConfig);
+      await updateConnectionHint(false);
+      return disconnectedStatus;
+    }
+
+    const now = Date.now();
+
+    if (!forceRefresh && statusCache && statusCache.expiresAt > now) {
+      return {
+        ...statusCache.value,
+        financeConfig
+      };
+    }
+
+    try {
+      const response = await fetchAccounts(accessUrl, {
+        "balances-only": 1
+      });
+      const warnings = summarizeErrors(response.errlist);
+      const primaryError = getPrimaryFinanceError(response.errlist);
+      const connected = !primaryError?.requiresReconnect;
+      const status = getConfiguredStatus(financeConfig, {
+        connected,
+        requiresReconnect: Boolean(primaryError?.requiresReconnect),
+        statusMessage: primaryError?.message || "",
+        warnings
+      });
+
+      await updateConnectionHint(connected);
+      statusCache = {
+        value: status,
+        expiresAt: now + STATUS_CACHE_MS
+      };
+      return status;
+    } catch (error) {
+      const requiresReconnect = Number(error?.status) === 403;
+      const status = getConfiguredStatus(financeConfig, {
+        connected: false,
+        requiresReconnect,
+        statusMessage: requiresReconnect
+          ? "SimpleFIN access was rejected. Reconnect your bank."
+          : error.message || "Billbook could not reach SimpleFIN."
+      });
+
+      await updateConnectionHint(false);
+      statusCache = {
+        value: status,
+        expiresAt: now + STATUS_CACHE_MS
+      };
+      return status;
+    }
   }
 
   async function autoConnect() {
-    const status = await getStatus();
-    await updateConnectionHint(status.connected);
-    return status;
+    return getStatus({ forceRefresh: true });
   }
 
   async function connectFromFile() {
@@ -341,6 +453,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
       ...secrets,
       simplefinAccessUrl: accessUrl
     });
+    clearStatusCache();
     await updateConnectionHint(true);
     const response = await fetchAccounts(accessUrl, {
       "balances-only": 1
@@ -363,6 +476,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
   }
 
   async function listAccounts() {
+    clearStatusCache();
     const response = await fetchSimplefinAccounts({
       "balances-only": 1
     });
@@ -380,6 +494,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     const settings = await loadSettings();
     settings.finance = normalizeFinanceConfig(financeConfigLike);
     const savedSettings = await settingsStore.save(settings);
+    clearStatusCache();
 
     return normalizeFinanceConfig(savedSettings.finance);
   }
@@ -400,6 +515,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
       "start-date": startDate,
       "end-date": endDate
     });
+    clearStatusCache();
 
     return {
       content: renderFinanceSection({
