@@ -929,6 +929,39 @@ export class BillbookApp {
     }
   }
 
+  async handleToggleTouchIDLock() {
+    this.closeSidebarMenu();
+
+    if (!this.state.touchIDAvailable) {
+      await this.showConfirmDialog({
+        title: "Touch ID unavailable",
+        body: "This Mac cannot use Billbook's Touch ID launch lock.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+      return;
+    }
+
+    try {
+      const settings = await this.gateway.saveSecurityPreferences({
+        requireTouchIDOnLaunch: !this.state.requireTouchIDOnLaunch
+      });
+
+      this.state.requireTouchIDOnLaunch = Boolean(settings.security?.requireTouchIDOnLaunch);
+      renderChrome(this.state, this.elements);
+      this.showToast(
+        this.state.requireTouchIDOnLaunch
+          ? "Touch ID lock enabled for next launch"
+          : "Touch ID lock disabled"
+      );
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Touch ID setting unavailable",
+        body: error.message || "Billbook could not update its Touch ID launch setting.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
   async handleCreateBackup() {
     this.closeSidebarMenu();
 
@@ -1241,6 +1274,9 @@ export class BillbookApp {
     this.elements.toggleAutoConnectButton.addEventListener("click", async () =>
       this.handleToggleAutoConnect()
     );
+    this.elements.toggleTouchIDButton.addEventListener("click", async () =>
+      this.handleToggleTouchIDLock()
+    );
     this.elements.backupJournalButton.addEventListener("click", async () => this.handleCreateBackup());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
@@ -1336,6 +1372,8 @@ export class BillbookApp {
     this.state.ouraConnected = Boolean(settings.integrations?.ouraConnectedHint);
     this.state.autoConnectIntegrationsOnStartup =
       settings.integrations?.autoConnectOnStartup !== false;
+    this.state.touchIDAvailable = Boolean(settings.touchIDAvailable);
+    this.state.requireTouchIDOnLaunch = Boolean(settings.security?.requireTouchIDOnLaunch);
     await this.loadEntries({ preserveSelection: false });
     renderApp(this.state, this.elements);
 

@@ -1,4 +1,12 @@
-const { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  safeStorage,
+  shell,
+  systemPreferences
+} = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
@@ -15,11 +23,14 @@ const {
 } = require("./lib/journal-store");
 
 const APP_TITLE = "Billbook";
+const TOUCH_ID_REASON = "Open Billbook";
 
 let mainWindow = null;
 let allowClose = false;
 let isDirty = false;
 let watcher = null;
+let touchIDUnlockPromise = null;
+let touchIDUnlockedThisSession = false;
 const settingsStore = createSettingsStore(app);
 const secureStore = createSecureStore(app, safeStorage);
 const financeService = createFinanceService({
@@ -110,6 +121,43 @@ function focusMainWindow() {
   mainWindow.focus();
 }
 
+function canPromptTouchID() {
+  return process.platform === "darwin" && systemPreferences.canPromptTouchID();
+}
+
+async function requiresTouchIDOnLaunch() {
+  const settings = await settingsStore.load();
+  return Boolean(settings.security?.requireTouchIDOnLaunch);
+}
+
+async function ensureTouchIDUnlocked() {
+  if (!(await requiresTouchIDOnLaunch())) {
+    return true;
+  }
+
+  if (touchIDUnlockedThisSession) {
+    return true;
+  }
+
+  if (touchIDUnlockPromise) {
+    return touchIDUnlockPromise;
+  }
+
+  touchIDUnlockPromise = (async () => {
+    if (!canPromptTouchID()) {
+      throw new Error("Touch ID is not available on this Mac.");
+    }
+
+    await systemPreferences.promptTouchID(TOUCH_ID_REASON);
+    touchIDUnlockedThisSession = true;
+    return true;
+  })().finally(() => {
+    touchIDUnlockPromise = null;
+  });
+
+  return touchIDUnlockPromise;
+}
+
 async function getSettingsWithWatcher() {
   const settings = await settingsStore.load();
   const exists = await pathExists(settings.journalDirectory);
@@ -120,7 +168,8 @@ async function getSettingsWithWatcher() {
 
   return {
     ...settings,
-    journalDirectoryMissing: Boolean(settings.journalDirectory) && !exists
+    journalDirectoryMissing: Boolean(settings.journalDirectory) && !exists,
+    touchIDAvailable: canPromptTouchID()
   };
 }
 
@@ -136,11 +185,13 @@ async function getJournalDirectoryState() {
   };
 }
 
-function createMainWindow() {
+async function createMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     focusMainWindow();
-    return;
+    return true;
   }
+
+  await ensureTouchIDUnlocked();
 
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -191,6 +242,25 @@ function createMainWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+
+  return true;
+}
+
+async function openBillbookWindow({ quitOnFailure = false } = {}) {
+  try {
+    await createMainWindow();
+    return true;
+  } catch (error) {
+    if (error?.message === "Touch ID is not available on this Mac.") {
+      dialog.showErrorBox(APP_TITLE, error.message);
+    }
+
+    if (quitOnFailure) {
+      app.quit();
+    }
+
+    return false;
+  }
 }
 
 function registerSettingsHandlers() {
@@ -205,6 +275,27 @@ function registerSettingsHandlers() {
     settings.integrations = {
       ...(settings.integrations || {}),
       autoConnectOnStartup: nextAutoConnect
+    };
+
+    return settingsStore.save(settings);
+  });
+
+  ipcMain.handle("settings:save-security-preferences", async (_event, preferences = {}) => {
+    const settings = await settingsStore.load();
+    const nextRequireTouchIDOnLaunch = Object.prototype.hasOwnProperty.call(
+      preferences,
+      "requireTouchIDOnLaunch"
+    )
+      ? Boolean(preferences.requireTouchIDOnLaunch)
+      : settings.security?.requireTouchIDOnLaunch;
+
+    if (nextRequireTouchIDOnLaunch && !canPromptTouchID()) {
+      throw new Error("Touch ID is not available on this Mac.");
+    }
+
+    settings.security = {
+      ...(settings.security || {}),
+      requireTouchIDOnLaunch: nextRequireTouchIDOnLaunch
     };
 
     return settingsStore.save(settings);
@@ -460,12 +551,12 @@ app.on("second-instance", () => {
 
 app.whenReady().then(() => {
   registerIpcHandlers();
-  createMainWindow();
+  void openBillbookWindow({ quitOnFailure: true });
 });
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow();
+    void openBillbookWindow();
   }
 });
 

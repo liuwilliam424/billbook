@@ -21,6 +21,8 @@ export function createInitialState() {
     ouraConnected: false,
     ouraHasClientCredentials: false,
     ouraStatusError: "",
-    autoConnectIntegrationsOnStartup: true
+    autoConnectIntegrationsOnStartup: true,
+    touchIDAvailable: false,
+    requireTouchIDOnLaunch: false
   };
 }

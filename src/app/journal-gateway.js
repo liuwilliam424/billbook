@@ -5,6 +5,7 @@ export function createJournalGateway(api) {
   return {
     loadSettings: () => api.settings.get(),
     saveIntegrationPreferences: (preferences) => api.settings.saveIntegrationPreferences(preferences),
+    saveSecurityPreferences: (preferences) => api.settings.saveSecurityPreferences(preferences),
     chooseJournalDirectory: () => api.settings.chooseJournalDirectory(),
     openJournalDirectory: () => api.settings.openJournalDirectory(),
     listEntries: () => api.journal.listEntries(),

@@ -37,6 +37,12 @@ function renderSidebarMenu(state, elements) {
   elements.toggleAutoConnectButton.textContent = state.autoConnectIntegrationsOnStartup
     ? "Disable Startup Auto-Connect"
     : "Enable Startup Auto-Connect";
+  elements.toggleTouchIDButton.textContent = state.touchIDAvailable
+    ? state.requireTouchIDOnLaunch
+      ? "Disable Touch ID Lock"
+      : "Enable Touch ID Lock"
+    : "Touch ID Unavailable";
+  elements.toggleTouchIDButton.disabled = !state.touchIDAvailable;
   elements.backupJournalButton.disabled = !canCreateBackup;
   renderIntegrationStatus(state, elements);
 }

@@ -12,6 +12,9 @@ function createDefaultSettings() {
       simplefinConnectedHint: false,
       ouraConnectedHint: false,
       autoConnectOnStartup: true
+    },
+    security: {
+      requireTouchIDOnLaunch: false
     }
   };
 }
@@ -23,6 +26,9 @@ function normalizeSettings(settingsLike = {}) {
     : {};
   const integrations = settingsLike.integrations && typeof settingsLike.integrations === "object"
     ? settingsLike.integrations
+    : {};
+  const security = settingsLike.security && typeof settingsLike.security === "object"
+    ? settingsLike.security
     : {};
   const autoConnectOnStartup = Object.prototype.hasOwnProperty.call(integrations, "autoConnectOnStartup")
     ? Boolean(integrations.autoConnectOnStartup)
@@ -47,6 +53,11 @@ function normalizeSettings(settingsLike = {}) {
       simplefinConnectedHint: Boolean(integrations.simplefinConnectedHint),
       ouraConnectedHint: Boolean(integrations.ouraConnectedHint),
       autoConnectOnStartup
+    },
+    security: {
+      ...defaults.security,
+      ...security,
+      requireTouchIDOnLaunch: Boolean(security.requireTouchIDOnLaunch)
     }
   };
 }

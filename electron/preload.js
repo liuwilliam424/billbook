@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("journalApp", {
   settings: {
     get: () => ipcRenderer.invoke("settings:get"),
     saveIntegrationPreferences: (preferences) => ipcRenderer.invoke("settings:save-integration-preferences", preferences),
+    saveSecurityPreferences: (preferences) => ipcRenderer.invoke("settings:save-security-preferences", preferences),
     chooseJournalDirectory: () => ipcRenderer.invoke("settings:choose-journal-directory"),
     openJournalDirectory: () => ipcRenderer.invoke("settings:open-journal-directory")
   },
