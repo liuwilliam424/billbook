@@ -23,6 +23,8 @@ export class BillbookApp {
     this.internalWriteGuards = new Map();
     this.dirtySyncFrame = 0;
     this.sectionResizeFrame = 0;
+    this.sectionLoadToken = 0;
+    this.pendingSectionLoads = new Map();
   }
 
   showToast(message) {
@@ -196,6 +198,7 @@ export class BillbookApp {
   }
 
   setCurrentEntry(entry, { markSaved = true } = {}) {
+    this.cancelPendingSectionLoads();
     this.state.currentEntry = cloneEntry(entry);
     this.state.selectedFilePath = entry.filePath || "";
     this.state.savedSnapshot = markSaved ? snapshotEntry(entry) : "";
@@ -209,6 +212,69 @@ export class BillbookApp {
     renderEditor(this.state, this.elements);
     this.queueSectionInputHeightSync();
     this.syncDirtyState();
+  }
+
+  cancelPendingSectionLoads() {
+    this.sectionLoadToken += 1;
+    this.pendingSectionLoads.clear();
+    this.state.loadingSections.clear();
+  }
+
+  async waitForPendingSectionLoads() {
+    if (!this.pendingSectionLoads.size) {
+      return;
+    }
+
+    await Promise.allSettled([...this.pendingSectionLoads.values()]);
+  }
+
+  setSectionLoading(key, isLoading) {
+    if (isLoading) {
+      this.state.loadingSections.add(key);
+    } else {
+      this.state.loadingSections.delete(key);
+    }
+
+    renderEditor(this.state, this.elements);
+  }
+
+  applyAsyncSectionResult(token, key, content) {
+    if (token !== this.sectionLoadToken || !this.state.currentEntry) {
+      return;
+    }
+
+    this.pendingSectionLoads.delete(key);
+    this.state.currentEntry.sections[key] = content;
+    this.elements.sectionInputs[key].value = content;
+    this.setSectionLoading(key, false);
+    this.queueSectionInputHeightSync();
+    this.scheduleDirtySync();
+  }
+
+  startGeneratedSectionLoads(dateString) {
+    const token = this.sectionLoadToken;
+    const financeTask = (async () => {
+      const financeText = await this.buildFinanceSectionForDate(dateString);
+      return this.applyMonthlyNetWorthSnapshot(financeText, dateString);
+    })()
+      .then((content) => this.applyAsyncSectionResult(token, "finances", content))
+      .catch((error) => {
+        this.applyAsyncSectionResult(
+          token,
+          "finances",
+          this.buildFinanceErrorText(error.message || "Finance snapshot unavailable")
+        );
+      });
+    const sleepTask = this.buildSleepSectionForDate(dateString)
+      .then((content) => this.applyAsyncSectionResult(token, "sleep", content))
+      .catch(() => {
+        this.applyAsyncSectionResult(token, "sleep", this.buildSleepUnavailableText());
+      });
+
+    this.pendingSectionLoads.set("finances", financeTask);
+    this.pendingSectionLoads.set("sleep", sleepTask);
+    this.setSectionLoading("finances", true);
+    this.setSectionLoading("sleep", true);
   }
 
   syncSectionInputs(sectionsLike = {}) {
@@ -698,6 +764,7 @@ export class BillbookApp {
       return false;
     }
 
+    await this.waitForPendingSectionLoads();
     this.updateCurrentEntryFromInputs();
 
     if (!this.state.currentEntry.date) {
@@ -733,10 +800,8 @@ export class BillbookApp {
     }
 
     const draft = createBlankDraft();
-    const financeText = await this.buildFinanceSectionForDate(draft.date);
-    draft.sections.finances = await this.applyMonthlyNetWorthSnapshot(financeText, draft.date);
-    draft.sections.sleep = await this.buildSleepSectionForDate(draft.date);
     this.setCurrentEntry(draft, { markSaved: false });
+    this.startGeneratedSectionLoads(draft.date);
     renderApp(this.state, this.elements);
     this.elements.titleInput.focus();
   }

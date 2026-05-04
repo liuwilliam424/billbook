@@ -33,6 +33,9 @@ export function getElements() {
     sectionInputs: Object.fromEntries(
       DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}`)])
     ),
+    sectionLoaders: Object.fromEntries(
+      DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}-loading`)])
+    ),
     confirmDialog: document.querySelector("#confirm-dialog"),
     confirmTitle: document.querySelector("#confirm-title"),
     confirmBody: document.querySelector("#confirm-body"),

@@ -107,6 +107,21 @@ function renderEditorSubtitle(state, elements, view) {
   elements.editorSubtitle.title = "";
 }
 
+function renderSectionLoadingStates(state, elements, showEditor) {
+  for (const [key, input] of Object.entries(elements.sectionInputs)) {
+    const loader = elements.sectionLoaders?.[key];
+
+    if (!loader) {
+      continue;
+    }
+
+    const loading = showEditor && state.loadingSections.has(key);
+    input.classList.toggle("is-hidden", loading);
+    input.disabled = loading;
+    loader.classList.toggle("is-hidden", !loading);
+  }
+}
+
 function renderEmptyState(state, elements, view) {
   const showEmptyState = view.mode !== "editor";
 
@@ -151,6 +166,7 @@ export function renderEditor(state, elements) {
 
   renderEditorSubtitle(state, elements, view);
   renderEmptyState(state, elements, view);
+  renderSectionLoadingStates(state, elements, showEditor);
 }
 
 export function renderChrome(state, elements) {
