@@ -32,6 +32,9 @@ function renderSidebarMenu(state, elements) {
     ? "Reconnect Oura"
     : "Connect Oura";
   elements.configureFinanceButton.disabled = !state.financeConnected;
+  elements.toggleAutoConnectButton.textContent = state.autoConnectIntegrationsOnStartup
+    ? "Disable Startup Auto-Connect"
+    : "Enable Startup Auto-Connect";
   elements.backupJournalButton.disabled = !canCreateBackup;
 }
 

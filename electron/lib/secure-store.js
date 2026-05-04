@@ -13,8 +13,20 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
       return cache;
     }
 
+    let raw = "";
+
     try {
-      const raw = await fsp.readFile(getStorePath(), "utf8");
+      raw = await fsp.readFile(getStorePath(), "utf8");
+    } catch (error) {
+      if (error && error.code === "ENOENT") {
+        cache = {};
+        return cache;
+      }
+
+      throw error;
+    }
+
+    try {
       const payload = JSON.parse(raw);
 
       if (!payload || typeof payload !== "object") {
@@ -35,9 +47,14 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
 
       cache = {};
       return cache;
-    } catch {
-      cache = {};
-      return cache;
+    } catch (error) {
+      cache = null;
+
+      if (error instanceof SyntaxError) {
+        throw new Error("Billbook could not read its saved integration credentials.");
+      }
+
+      throw error;
     }
   }
 

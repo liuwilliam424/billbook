@@ -4,6 +4,7 @@
 export function createJournalGateway(api) {
   return {
     loadSettings: () => api.settings.get(),
+    saveIntegrationPreferences: (preferences) => api.settings.saveIntegrationPreferences(preferences),
     chooseJournalDirectory: () => api.settings.chooseJournalDirectory(),
     openJournalDirectory: () => api.settings.openJournalDirectory(),
     listEntries: () => api.journal.listEntries(),
@@ -12,11 +13,13 @@ export function createJournalGateway(api) {
     createBackup: () => api.journal.createBackup(),
     saveEntry: (entry) => api.journal.saveEntry(entry),
     getFinanceStatus: () => api.finance.getStatus(),
+    autoConnectSimplefin: () => api.finance.autoConnect(),
     connectSimplefinFromFile: () => api.finance.connectFromFile(),
     listFinanceAccounts: () => api.finance.listAccounts(),
     saveFinanceConfig: (financeConfig) => api.finance.saveConfig(financeConfig),
     buildFinanceSection: (dateString) => api.finance.buildEntrySection(dateString),
     getOuraStatus: () => api.oura.getStatus(),
+    autoConnectOura: () => api.oura.autoConnect(),
     saveOuraClientCredentials: (credentials) => api.oura.saveClientCredentials(credentials),
     connectOura: () => api.oura.connect(),
     buildSleepSection: (dateString) => api.oura.buildEntrySection(dateString),

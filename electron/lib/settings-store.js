@@ -10,7 +10,8 @@ function createDefaultSettings() {
     },
     integrations: {
       simplefinConnectedHint: false,
-      ouraConnectedHint: false
+      ouraConnectedHint: false,
+      autoConnectOnStartup: true
     }
   };
 }
@@ -23,6 +24,9 @@ function normalizeSettings(settingsLike = {}) {
   const integrations = settingsLike.integrations && typeof settingsLike.integrations === "object"
     ? settingsLike.integrations
     : {};
+  const autoConnectOnStartup = Object.prototype.hasOwnProperty.call(integrations, "autoConnectOnStartup")
+    ? Boolean(integrations.autoConnectOnStartup)
+    : defaults.integrations.autoConnectOnStartup;
 
   return {
     ...defaults,
@@ -41,7 +45,8 @@ function normalizeSettings(settingsLike = {}) {
       ...defaults.integrations,
       ...integrations,
       simplefinConnectedHint: Boolean(integrations.simplefinConnectedHint),
-      ouraConnectedHint: Boolean(integrations.ouraConnectedHint)
+      ouraConnectedHint: Boolean(integrations.ouraConnectedHint),
+      autoConnectOnStartup
     }
   };
 }

@@ -196,6 +196,20 @@ function createMainWindow() {
 function registerSettingsHandlers() {
   ipcMain.handle("settings:get", async () => getSettingsWithWatcher());
 
+  ipcMain.handle("settings:save-integration-preferences", async (_event, preferences = {}) => {
+    const settings = await settingsStore.load();
+    const nextAutoConnect = Object.prototype.hasOwnProperty.call(preferences, "autoConnectOnStartup")
+      ? Boolean(preferences.autoConnectOnStartup)
+      : settings.integrations?.autoConnectOnStartup;
+
+    settings.integrations = {
+      ...(settings.integrations || {}),
+      autoConnectOnStartup: nextAutoConnect
+    };
+
+    return settingsStore.save(settings);
+  });
+
   ipcMain.handle("settings:choose-journal-directory", async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       title: "Choose Journal Directory",
@@ -360,6 +374,8 @@ function registerJournalHandlers() {
 function registerFinanceHandlers() {
   ipcMain.handle("finance:get-status", async () => financeService.getStatus());
 
+  ipcMain.handle("finance:auto-connect", async () => financeService.autoConnect());
+
   ipcMain.handle("finance:connect-from-file", async () => financeService.connectFromFile());
 
   ipcMain.handle("finance:list-accounts", async () => financeService.listAccounts());
@@ -375,6 +391,8 @@ function registerFinanceHandlers() {
 
 function registerOuraHandlers() {
   ipcMain.handle("oura:get-status", async () => ouraService.getStatus());
+
+  ipcMain.handle("oura:auto-connect", async () => ouraService.autoConnect());
 
   ipcMain.handle("oura:save-client-credentials", async (_event, credentials) =>
     ouraService.saveClientCredentials(credentials)

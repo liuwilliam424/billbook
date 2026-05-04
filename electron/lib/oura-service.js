@@ -177,6 +177,34 @@ function createOuraService({ settingsStore, secureStore, shell }) {
     };
   }
 
+  async function autoConnect() {
+    const status = await getStatus();
+
+    if (!status.hasClientCredentials) {
+      await updateConnectionHint(false);
+      return status;
+    }
+
+    if (!status.connected) {
+      return status;
+    }
+
+    try {
+      await ensureAccessToken();
+      await updateConnectionHint(true);
+      return {
+        connected: true,
+        hasClientCredentials: true
+      };
+    } catch (error) {
+      return {
+        connected: false,
+        hasClientCredentials: true,
+        error: error.message || "Billbook could not reconnect to Oura."
+      };
+    }
+  }
+
   async function saveClientCredentials({ clientId, clientSecret }) {
     const normalizedClientId = typeof clientId === "string" ? clientId.trim() : "";
     const normalizedClientSecret = typeof clientSecret === "string" ? clientSecret.trim() : "";
@@ -355,6 +383,7 @@ function createOuraService({ settingsStore, secureStore, shell }) {
   }
 
   return {
+    autoConnect,
     buildSleepSection,
     connect,
     getStatus,

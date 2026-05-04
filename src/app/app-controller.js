@@ -132,6 +132,40 @@ export class BillbookApp {
     renderChrome(this.state, this.elements);
   }
 
+  async autoConnectIntegrations({ showErrors = false } = {}) {
+    try {
+      const financeStatus = await this.gateway.autoConnectSimplefin();
+      this.state.financeConnected = Boolean(financeStatus?.connected);
+      this.state.financeConfigured = Boolean(financeStatus?.configured);
+    } catch (error) {
+      this.state.financeConnected = false;
+      this.state.financeConfigured = false;
+
+      if (showErrors) {
+        this.showToast(error.message || "Billbook could not unlock SimpleFIN on startup");
+      }
+    }
+
+    renderChrome(this.state, this.elements);
+
+    try {
+      const ouraStatus = await this.gateway.autoConnectOura();
+      this.state.ouraConnected = Boolean(ouraStatus?.connected);
+
+      if (showErrors && ouraStatus?.error) {
+        this.showToast(ouraStatus.error);
+      }
+    } catch (error) {
+      this.state.ouraConnected = false;
+
+      if (showErrors) {
+        this.showToast(error.message || "Billbook could not unlock Oura on startup");
+      }
+    }
+
+    renderChrome(this.state, this.elements);
+  }
+
   setCurrentEntry(entry, { markSaved = true } = {}) {
     this.state.currentEntry = cloneEntry(entry);
     this.state.selectedFilePath = entry.filePath || "";
@@ -755,6 +789,35 @@ export class BillbookApp {
     renderChrome(this.state, this.elements);
   }
 
+  async handleToggleAutoConnect() {
+    this.closeSidebarMenu();
+
+    try {
+      const settings = await this.gateway.saveIntegrationPreferences({
+        autoConnectOnStartup: !this.state.autoConnectIntegrationsOnStartup
+      });
+
+      this.state.autoConnectIntegrationsOnStartup = Boolean(
+        settings.integrations?.autoConnectOnStartup
+      );
+      renderChrome(this.state, this.elements);
+
+      if (this.state.autoConnectIntegrationsOnStartup) {
+        this.showToast("Startup auto-connect enabled");
+        await this.autoConnectIntegrations({ showErrors: true });
+        return;
+      }
+
+      this.showToast("Startup auto-connect disabled");
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Integration settings unavailable",
+        body: error.message || "Billbook could not update its startup connection setting.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
   async handleCreateBackup() {
     this.closeSidebarMenu();
 
@@ -1064,6 +1127,9 @@ export class BillbookApp {
     this.elements.configureFinanceButton.addEventListener("click", async () =>
       this.handleConfigureFinance()
     );
+    this.elements.toggleAutoConnectButton.addEventListener("click", async () =>
+      this.handleToggleAutoConnect()
+    );
     this.elements.backupJournalButton.addEventListener("click", async () => this.handleCreateBackup());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
@@ -1157,7 +1223,15 @@ export class BillbookApp {
       settings.integrations?.simplefinConnectedHint || this.state.financeConfigured
     );
     this.state.ouraConnected = Boolean(settings.integrations?.ouraConnectedHint);
+    this.state.autoConnectIntegrationsOnStartup =
+      settings.integrations?.autoConnectOnStartup !== false;
     await this.loadEntries({ preserveSelection: false });
     renderApp(this.state, this.elements);
+
+    if (this.state.autoConnectIntegrationsOnStartup) {
+      window.requestAnimationFrame(() => {
+        void this.autoConnectIntegrations({ showErrors: true });
+      });
+    }
   }
 }

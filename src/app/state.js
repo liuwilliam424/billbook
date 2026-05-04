@@ -15,6 +15,7 @@ export function createInitialState() {
     folderToastTimeoutId: null,
     financeConnected: false,
     financeConfigured: false,
-    ouraConnected: false
+    ouraConnected: false,
+    autoConnectIntegrationsOnStartup: true
   };
 }

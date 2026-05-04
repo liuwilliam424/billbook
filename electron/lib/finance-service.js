@@ -316,6 +316,12 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     };
   }
 
+  async function autoConnect() {
+    const status = await getStatus();
+    await updateConnectionHint(status.connected);
+    return status;
+  }
+
   async function connectFromFile() {
     const result = await chooseSetupTokenFile();
 
@@ -406,6 +412,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
   }
 
   return {
+    autoConnect,
     buildFinanceSnapshot,
     connectFromFile,
     getStatus,

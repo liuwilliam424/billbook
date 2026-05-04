@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("journalApp", {
   settings: {
     get: () => ipcRenderer.invoke("settings:get"),
+    saveIntegrationPreferences: (preferences) => ipcRenderer.invoke("settings:save-integration-preferences", preferences),
     chooseJournalDirectory: () => ipcRenderer.invoke("settings:choose-journal-directory"),
     openJournalDirectory: () => ipcRenderer.invoke("settings:open-journal-directory")
   },
@@ -15,6 +16,7 @@ contextBridge.exposeInMainWorld("journalApp", {
   },
   finance: {
     getStatus: () => ipcRenderer.invoke("finance:get-status"),
+    autoConnect: () => ipcRenderer.invoke("finance:auto-connect"),
     connectFromFile: () => ipcRenderer.invoke("finance:connect-from-file"),
     listAccounts: () => ipcRenderer.invoke("finance:list-accounts"),
     saveConfig: (financeConfig) => ipcRenderer.invoke("finance:save-config", financeConfig),
@@ -22,6 +24,7 @@ contextBridge.exposeInMainWorld("journalApp", {
   },
   oura: {
     getStatus: () => ipcRenderer.invoke("oura:get-status"),
+    autoConnect: () => ipcRenderer.invoke("oura:auto-connect"),
     saveClientCredentials: (credentials) => ipcRenderer.invoke("oura:save-client-credentials", credentials),
     connect: () => ipcRenderer.invoke("oura:connect"),
     buildEntrySection: (dateString) => ipcRenderer.invoke("oura:build-entry-section", dateString)

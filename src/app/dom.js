@@ -15,6 +15,7 @@ export function getElements() {
     connectSimplefinButton: document.querySelector("#connect-simplefin-button"),
     connectOuraButton: document.querySelector("#connect-oura-button"),
     configureFinanceButton: document.querySelector("#configure-finance-button"),
+    toggleAutoConnectButton: document.querySelector("#toggle-auto-connect-button"),
     backupJournalButton: document.querySelector("#backup-journal-button"),
     editorForm: document.querySelector("#editor-form"),
     emptyState: document.querySelector("#empty-state"),
