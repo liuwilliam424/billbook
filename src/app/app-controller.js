@@ -31,6 +31,15 @@ export class BillbookApp {
     }, 2600);
   }
 
+  buildFinanceErrorText(message) {
+    return [
+      "### Finance Snapshot Error",
+      message || "Billbook could not generate the finance snapshot for this entry.",
+      "",
+      "You can reconnect or reconfigure SimpleFIN from the sidebar menu, or replace this text manually."
+    ].join("\n");
+  }
+
   async refreshFinanceStatus() {
     try {
       const status = await this.gateway.getFinanceStatus();
@@ -280,20 +289,35 @@ export class BillbookApp {
 
   async buildFinanceSectionForDate(dateString) {
     if (!this.state.financeConnected || !this.state.financeConfigured) {
-      return "";
+      return this.buildFinanceErrorText(
+        !this.state.financeConnected
+          ? "SimpleFIN is not connected."
+          : "Finance accounts are not configured."
+      );
     }
 
     try {
       const result = await this.gateway.buildFinanceSection(dateString);
+      const warnings = Array.isArray(result?.warnings) ? result.warnings.filter(Boolean) : [];
+      const content = typeof result?.content === "string" ? result.content.trim() : "";
 
-      if (Array.isArray(result?.warnings) && result.warnings.length) {
-        this.showToast(result.warnings[0]);
+      if (warnings.length) {
+        this.showToast(warnings[0]);
       }
 
-      return typeof result?.content === "string" ? result.content : "";
+      if (content) {
+        return content;
+      }
+
+      if (warnings.length) {
+        return this.buildFinanceErrorText(warnings.join(" "));
+      }
+
+      return this.buildFinanceErrorText("SimpleFIN returned no finance data for this entry.");
     } catch (error) {
-      this.showToast(error.message || "Finance snapshot unavailable");
-      return "";
+      const message = error.message || "Finance snapshot unavailable";
+      this.showToast(message);
+      return this.buildFinanceErrorText(message);
     }
   }
 
