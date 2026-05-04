@@ -758,7 +758,7 @@ textarea {
 }
 
 .confirm-body {
-  max-width: 24ch;
+  max-width: 32ch;
   margin: 10px 0 0;
   font-size: 1.02rem;
   line-height: 1.45;
@@ -784,23 +784,19 @@ textarea {
   white-space: nowrap;
 }
 
-.confirm-actions [data-action="cancel"] {
-  border-color: transparent;
-  background: transparent;
-  color: var(--ink-soft);
-}
-
-.confirm-actions [data-action="cancel"]:hover {
-  border-color: var(--line);
-  background: rgba(255, 255, 255, 0.62);
-  color: var(--ink);
-}
-
 .confirm-actions [data-action="discard"] {
   background: rgba(255, 255, 255, 0.84);
 }
 
 .confirm-actions [data-action="discard"]:hover {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.confirm-actions [data-action="cancel"] {
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.confirm-actions [data-action="cancel"]:hover {
   background: rgba(255, 255, 255, 0.96);
 }
 
