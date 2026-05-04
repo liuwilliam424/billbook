@@ -30,12 +30,61 @@ function renderSidebarMenu(state, elements) {
     : "Connect SimpleFIN";
   elements.connectOuraButton.textContent = state.ouraConnected
     ? "Reconnect Oura"
-    : "Connect Oura";
+    : state.ouraHasClientCredentials
+      ? "Authorize Oura"
+      : "Connect Oura";
   elements.configureFinanceButton.disabled = !state.financeConnected;
   elements.toggleAutoConnectButton.textContent = state.autoConnectIntegrationsOnStartup
     ? "Disable Startup Auto-Connect"
     : "Enable Startup Auto-Connect";
   elements.backupJournalButton.disabled = !canCreateBackup;
+  renderIntegrationStatus(state, elements);
+}
+
+function renderIntegrationStatus(state, elements) {
+  const simplefinText = getSimplefinStatusText(state);
+  const ouraText = getOuraStatusText(state);
+
+  elements.simplefinStatus.textContent = simplefinText;
+  elements.ouraStatus.textContent = ouraText;
+  elements.simplefinStatus.classList.toggle("is-error", Boolean(state.financeStatusError));
+  elements.ouraStatus.classList.toggle("is-error", Boolean(state.ouraStatusError));
+}
+
+function getSimplefinStatusText(state) {
+  if (state.financeStatusError) {
+    return state.financeStatusError;
+  }
+
+  if (state.financeConnected && state.financeConfigured) {
+    return "Connected • accounts set";
+  }
+
+  if (state.financeConnected) {
+    return "Connected • choose accounts";
+  }
+
+  if (state.financeConfigured) {
+    return "Configured • reconnect needed";
+  }
+
+  return "Not connected";
+}
+
+function getOuraStatusText(state) {
+  if (state.ouraStatusError) {
+    return state.ouraStatusError;
+  }
+
+  if (state.ouraConnected) {
+    return "Connected";
+  }
+
+  if (state.ouraHasClientCredentials) {
+    return "Authorization needed";
+  }
+
+  return "Not connected";
 }
 
 function renderEditorSubtitle(state, elements, view) {

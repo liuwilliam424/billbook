@@ -108,25 +108,39 @@ export class BillbookApp {
     return null;
   }
 
-  async refreshFinanceStatus() {
+  async refreshFinanceStatus({ showErrors = false } = {}) {
     try {
       const status = await this.gateway.getFinanceStatus();
       this.state.financeConnected = Boolean(status.connected);
       this.state.financeConfigured = Boolean(status.configured);
-    } catch {
+      this.state.financeStatusError = "";
+    } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeStatusError = error.message || "Status unavailable";
+
+      if (showErrors) {
+        this.showToast(this.state.financeStatusError);
+      }
     }
 
     renderChrome(this.state, this.elements);
   }
 
-  async refreshOuraStatus() {
+  async refreshOuraStatus({ showErrors = false } = {}) {
     try {
       const status = await this.gateway.getOuraStatus();
       this.state.ouraConnected = Boolean(status.connected);
-    } catch {
+      this.state.ouraHasClientCredentials = Boolean(status.hasClientCredentials);
+      this.state.ouraStatusError = "";
+    } catch (error) {
       this.state.ouraConnected = false;
+      this.state.ouraHasClientCredentials = false;
+      this.state.ouraStatusError = error.message || "Status unavailable";
+
+      if (showErrors) {
+        this.showToast(this.state.ouraStatusError);
+      }
     }
 
     renderChrome(this.state, this.elements);
@@ -137,12 +151,14 @@ export class BillbookApp {
       const financeStatus = await this.gateway.autoConnectSimplefin();
       this.state.financeConnected = Boolean(financeStatus?.connected);
       this.state.financeConfigured = Boolean(financeStatus?.configured);
+      this.state.financeStatusError = "";
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeStatusError = error.message || "Status unavailable";
 
       if (showErrors) {
-        this.showToast(error.message || "Billbook could not unlock SimpleFIN on startup");
+        this.showToast(this.state.financeStatusError || "Billbook could not unlock SimpleFIN on startup");
       }
     }
 
@@ -151,19 +167,28 @@ export class BillbookApp {
     try {
       const ouraStatus = await this.gateway.autoConnectOura();
       this.state.ouraConnected = Boolean(ouraStatus?.connected);
+      this.state.ouraHasClientCredentials = Boolean(ouraStatus?.hasClientCredentials);
+      this.state.ouraStatusError = ouraStatus?.error || "";
 
       if (showErrors && ouraStatus?.error) {
         this.showToast(ouraStatus.error);
       }
     } catch (error) {
       this.state.ouraConnected = false;
+      this.state.ouraHasClientCredentials = false;
+      this.state.ouraStatusError = error.message || "Status unavailable";
 
       if (showErrors) {
-        this.showToast(error.message || "Billbook could not unlock Oura on startup");
+        this.showToast(this.state.ouraStatusError || "Billbook could not unlock Oura on startup");
       }
     }
 
     renderChrome(this.state, this.elements);
+  }
+
+  async refreshSidebarIntegrationStatuses({ showErrors = false } = {}) {
+    await this.refreshFinanceStatus({ showErrors });
+    await this.refreshOuraStatus({ showErrors });
   }
 
   setCurrentEntry(entry, { markSaved = true } = {}) {
@@ -778,6 +803,10 @@ export class BillbookApp {
   toggleSidebarMenu() {
     this.state.isSidebarMenuOpen = !this.state.isSidebarMenuOpen;
     renderChrome(this.state, this.elements);
+
+    if (this.state.isSidebarMenuOpen) {
+      void this.refreshSidebarIntegrationStatuses();
+    }
   }
 
   closeSidebarMenu() {

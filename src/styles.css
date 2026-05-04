@@ -295,6 +295,42 @@ textarea {
   opacity: 0.5;
 }
 
+.sidebar-menu-status {
+  margin-top: 4px;
+  padding: 10px 10px 8px;
+  border-top: 1px solid var(--line);
+}
+
+.sidebar-menu-status-heading {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+}
+
+.sidebar-menu-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 3px 0;
+  font-size: 0.78rem;
+}
+
+.sidebar-menu-status-name {
+  color: var(--ink);
+}
+
+.sidebar-menu-status-value {
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+.sidebar-menu-status-value.is-error {
+  color: var(--accent);
+}
+
 .group-block + .group-block {
   margin-top: 16px;
 }
