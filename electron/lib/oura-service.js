@@ -8,6 +8,7 @@ const OURA_REDIRECT_URI = "http://localhost:53682/oura/callback";
 const OURA_SCOPE = "daily";
 const OURA_CONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 const OURA_EXPIRY_SKEW_MS = 60 * 1000;
+const OURA_REQUEST_TIMEOUT_MS = 15000;
 
 function getNextDateString(dateString) {
   const value = typeof dateString === "string" ? dateString.trim() : "";
@@ -24,6 +25,10 @@ function getNextDateString(dateString) {
 
   parsed.setUTCDate(parsed.getUTCDate() + 1);
   return parsed.toISOString().slice(0, 10);
+}
+
+function getTimeoutSignal() {
+  return AbortSignal.timeout(OURA_REQUEST_TIMEOUT_MS);
 }
 
 function createOuraService({ settingsStore, secureStore, shell }) {
@@ -160,13 +165,24 @@ function createOuraService({ settingsStore, secureStore, shell }) {
       params.set("refresh_token", refreshToken);
     }
 
-    const response = await fetch(OURA_TOKEN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params.toString()
-    });
+    let response;
+
+    try {
+      response = await fetch(OURA_TOKEN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: params.toString(),
+        signal: getTimeoutSignal()
+      });
+    } catch (error) {
+      if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+        throw new Error("Oura took too long to respond.");
+      }
+
+      throw error;
+    }
 
     const payload = await response.json().catch(() => ({}));
 
@@ -194,7 +210,7 @@ function createOuraService({ settingsStore, secureStore, shell }) {
     };
   }
 
-  async function autoConnect() {
+  async function autoConnect({ startup = false } = {}) {
     const status = await getStatus();
 
     if (!status.hasClientCredentials) {
@@ -203,6 +219,11 @@ function createOuraService({ settingsStore, secureStore, shell }) {
     }
 
     if (!status.connected) {
+      return status;
+    }
+
+    if (startup) {
+      await updateConnectionHint(true);
       return status;
     }
 
@@ -369,11 +390,22 @@ function createOuraService({ settingsStore, secureStore, shell }) {
       end_date: getNextDateString(dateString),
       fields: "day,total_sleep_duration,type,bedtime_end"
     });
-    const response = await fetch(`${OURA_SLEEP_URL}?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
+    let response;
+
+    try {
+      response = await fetch(`${OURA_SLEEP_URL}?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        signal: getTimeoutSignal()
+      });
+    } catch (error) {
+      if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+        throw new Error("Oura took too long to load sleep data.");
       }
-    });
+
+      throw error;
+    }
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {

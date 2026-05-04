@@ -3,6 +3,7 @@ const fsp = require("node:fs/promises");
 
 function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
   let cache = null;
+  let loadPromise = null;
 
   function getStorePath() {
     return path.join(app.getPath("userData"), fileName);
@@ -13,53 +14,66 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
       return cache;
     }
 
-    let raw = "";
-
-    try {
-      raw = await fsp.readFile(getStorePath(), "utf8");
-    } catch (error) {
-      if (error && error.code === "ENOENT") {
-        cache = {};
-        return cache;
-      }
-
-      throw error;
+    if (loadPromise) {
+      return loadPromise;
     }
 
-    try {
-      const payload = JSON.parse(raw);
+    loadPromise = (async () => {
+      let raw = "";
 
-      if (!payload || typeof payload !== "object") {
+      try {
+        raw = await fsp.readFile(getStorePath(), "utf8");
+      } catch (error) {
+        if (error && error.code === "ENOENT") {
+          cache = {};
+          return cache;
+        }
+
+        throw error;
+      }
+
+      try {
+        const payload = JSON.parse(raw);
+
+        if (!payload || typeof payload !== "object") {
+          cache = {};
+          return cache;
+        }
+
+        if (payload.encrypted && typeof payload.data === "string") {
+          const decrypted = safeStorage.decryptString(Buffer.from(payload.data, "base64"));
+          cache = JSON.parse(decrypted);
+          return cache;
+        }
+
+        if (typeof payload.data === "string") {
+          cache = JSON.parse(payload.data);
+          return cache;
+        }
+
         cache = {};
         return cache;
+      } catch (error) {
+        cache = null;
+
+        if (error instanceof SyntaxError) {
+          throw new Error("Billbook could not read its saved integration credentials.");
+        }
+
+        throw new Error(
+          "Billbook could not unlock its saved integration credentials."
+        );
+      } finally {
+        loadPromise = null;
       }
+    })();
 
-      if (payload.encrypted && typeof payload.data === "string") {
-        const decrypted = safeStorage.decryptString(Buffer.from(payload.data, "base64"));
-        cache = JSON.parse(decrypted);
-        return cache;
-      }
-
-      if (typeof payload.data === "string") {
-        cache = JSON.parse(payload.data);
-        return cache;
-      }
-
-      cache = {};
-      return cache;
-    } catch (error) {
-      cache = null;
-
-      if (error instanceof SyntaxError) {
-        throw new Error("Billbook could not read its saved integration credentials.");
-      }
-
-      throw error;
-    }
+    return loadPromise;
   }
 
   async function save(data) {
     cache = data && typeof data === "object" ? data : {};
+    loadPromise = null;
     await fsp.mkdir(app.getPath("userData"), { recursive: true });
 
     const serialized = JSON.stringify(cache, null, 2);

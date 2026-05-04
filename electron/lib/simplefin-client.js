@@ -79,14 +79,31 @@ function parseAccessUrl(accessUrl) {
   };
 }
 
+const SIMPLEFIN_REQUEST_TIMEOUT_MS = 15000;
+
+function getTimeoutSignal() {
+  return AbortSignal.timeout(SIMPLEFIN_REQUEST_TIMEOUT_MS);
+}
+
 async function claimAccessUrl(setupToken) {
   const claimUrl = decodeSetupToken(setupToken);
-  const response = await fetch(claimUrl, {
-    method: "POST",
-    headers: {
-      "Content-Length": "0"
+  let response;
+
+  try {
+    response = await fetch(claimUrl, {
+      method: "POST",
+      headers: {
+        "Content-Length": "0"
+      },
+      signal: getTimeoutSignal()
+    });
+  } catch (error) {
+    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+      throw new Error("SimpleFIN took too long to claim the setup token.");
     }
-  });
+
+    throw error;
+  }
 
   if (!response.ok) {
     const body = await response.text();
@@ -123,12 +140,23 @@ async function fetchAccounts(accessUrl, query = {}) {
     ...query
   });
   const auth = Buffer.from(`${username}:${password}`).toString("base64");
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Basic ${auth}`,
-      Accept: "application/json"
+  let response;
+
+  try {
+    response = await fetch(url, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        Accept: "application/json"
+      },
+      signal: getTimeoutSignal()
+    });
+  } catch (error) {
+    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+      throw new Error("SimpleFIN took too long to respond.");
     }
-  });
+
+    throw error;
+  }
 
   if (!response.ok) {
     const body = await response.text();

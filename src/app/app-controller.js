@@ -160,9 +160,9 @@ export class BillbookApp {
     this.state.ouraStatusError = oura.error || "";
   }
 
-  async refreshIntegrationStatuses({ autoConnect = false, showErrors = false } = {}) {
+  async refreshIntegrationStatuses({ autoConnect = false, startup = false, showErrors = false } = {}) {
     try {
-      const statuses = await this.gateway.getIntegrationStatuses({ autoConnect });
+      const statuses = await this.gateway.getIntegrationStatuses({ autoConnect, startup });
       this.applyIntegrationStatuses(statuses);
 
       if (showErrors && statuses?.finance?.statusMessage) {
@@ -190,7 +190,7 @@ export class BillbookApp {
   }
 
   async autoConnectIntegrations({ showErrors = false } = {}) {
-    await this.refreshIntegrationStatuses({ autoConnect: true, showErrors });
+    await this.refreshIntegrationStatuses({ autoConnect: true, startup: true, showErrors });
   }
 
   async refreshSidebarIntegrationStatuses({ showErrors = false } = {}) {
@@ -687,10 +687,23 @@ export class BillbookApp {
 
   async loadEntries({ preserveSelection = true } = {}) {
     const hadUnsavedChanges = isDirty(this.state);
-    const { journalDirectory, journalDirectoryMissing, entries } = await this.gateway.listEntries();
+    const {
+      journalDirectory,
+      journalDirectoryMissing,
+      entries,
+      entryLoadErrors = []
+    } = await this.gateway.listEntries();
     this.state.journalDirectory = journalDirectory;
     this.state.journalDirectoryMissing = Boolean(journalDirectoryMissing);
     this.state.entries = entries;
+
+    if (Array.isArray(entryLoadErrors) && entryLoadErrors.length) {
+      this.showToast(
+        entryLoadErrors.length === 1
+          ? "One journal entry could not be loaded."
+          : `${entryLoadErrors.length} journal entries could not be loaded.`
+      );
+    }
 
     if (this.state.journalDirectoryMissing) {
       if (!hadUnsavedChanges) {

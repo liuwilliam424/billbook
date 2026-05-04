@@ -275,10 +275,13 @@ function registerJournalHandlers() {
 
     await watchJournalDirectory(journalDirectory);
 
+    const { entries, errors } = await listEntries(journalDirectory);
+
     return {
       journalDirectory,
       journalDirectoryMissing: false,
-      entries: await listEntries(journalDirectory)
+      entries,
+      entryLoadErrors: errors
     };
   });
 
@@ -408,11 +411,12 @@ function registerOuraHandlers() {
 function registerAppHandlers() {
   ipcMain.handle("app:get-integration-statuses", async (_event, options = {}) => {
     const autoConnect = Boolean(options?.autoConnect);
+    const startup = Boolean(options?.startup);
     const finance = autoConnect
       ? await financeService.autoConnect()
       : await financeService.getStatus();
     const oura = autoConnect
-      ? await ouraService.autoConnect()
+      ? await ouraService.autoConnect({ startup })
       : await ouraService.getStatus();
 
     return {

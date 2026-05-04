@@ -367,33 +367,55 @@ async function readEntryFile(filePath) {
 
 async function listEntries(rootDirectory) {
   const markdownFiles = await walkMarkdownFiles(rootDirectory);
-  const entries = await Promise.all(markdownFiles.map((filePath) => readEntryFile(filePath)));
+  const results = await Promise.allSettled(markdownFiles.map((filePath) => readEntryFile(filePath)));
+  const entries = [];
+  const errors = [];
 
-  return entries
-    .sort((left, right) => {
-      if (left.date !== right.date) {
-        return right.date.localeCompare(left.date);
-      }
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      entries.push(result.value);
+      continue;
+    }
 
-      return right.updatedAt.localeCompare(left.updatedAt);
-    })
-    .map((entry) => ({
-      filePath: entry.filePath,
-      slug: entry.slug,
-      title: entry.title,
-      date: entry.date,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      netWorthSnapshot: entry.netWorthSnapshot,
-      preview: entry.preview
-    }));
+    const message = result.reason?.message || "Unknown journal entry read error.";
+    errors.push(message);
+    console.warn("Billbook skipped a journal entry:", message);
+  }
+
+  return {
+    entries: entries
+      .sort((left, right) => {
+        if (left.date !== right.date) {
+          return right.date.localeCompare(left.date);
+        }
+
+        return right.updatedAt.localeCompare(left.updatedAt);
+      })
+      .map((entry) => ({
+        filePath: entry.filePath,
+        slug: entry.slug,
+        title: entry.title,
+        date: entry.date,
+        createdAt: entry.createdAt,
+        updatedAt: entry.updatedAt,
+        netWorthSnapshot: entry.netWorthSnapshot,
+        preview: entry.preview
+      })),
+    errors
+  };
 }
 
 async function pruneEmptyDirectories(startDirectory, stopDirectory) {
   let currentDirectory = path.resolve(startDirectory);
   const stop = path.resolve(stopDirectory);
 
-  while (currentDirectory.startsWith(stop) && currentDirectory !== stop) {
+  while (currentDirectory !== stop) {
+    const relativePath = path.relative(stop, currentDirectory);
+
+    if (!relativePath || relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      return;
+    }
+
     const children = await fsp.readdir(currentDirectory);
 
     if (children.length > 0) {

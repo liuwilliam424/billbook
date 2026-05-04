@@ -73,7 +73,17 @@ function createSettingsStore(app, fileName = "settings.json") {
     try {
       const raw = await fsp.readFile(getSettingsPath(), "utf8");
       cache = normalizeSettings(JSON.parse(raw));
-    } catch {
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        const corruptPath = `${getSettingsPath()}.corrupt.${Date.now()}`;
+        await fsp.mkdir(app.getPath("userData"), { recursive: true });
+        await fsp.rename(getSettingsPath(), corruptPath);
+      }
+
+      if (error && error.code && error.code !== "ENOENT" && !(error instanceof SyntaxError)) {
+        throw error;
+      }
+
       cache = createDefaultSettings();
       await save(cache);
     }
