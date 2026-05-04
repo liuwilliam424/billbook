@@ -294,7 +294,20 @@ export class BillbookApp {
     input.style.height = `${Math.max(130, input.scrollHeight)}px`;
   }
 
-  syncSectionInputHeights() {
+  resizeTitleInput() {
+    const input = this.elements.titleInput;
+
+    if (!input) {
+      return;
+    }
+
+    input.style.height = "0px";
+    input.style.height = `${Math.max(58, input.scrollHeight)}px`;
+  }
+
+  syncInputHeights() {
+    this.resizeTitleInput();
+
     for (const input of Object.values(this.elements.sectionInputs)) {
       this.resizeSectionInput(input);
     }
@@ -307,7 +320,7 @@ export class BillbookApp {
 
     this.sectionResizeFrame = window.requestAnimationFrame(() => {
       this.sectionResizeFrame = 0;
-      this.syncSectionInputHeights();
+      this.syncInputHeights();
     });
   }
 
@@ -1130,6 +1143,10 @@ export class BillbookApp {
 
     if (event.target?.classList?.contains("section-input")) {
       this.resizeSectionInput(event.target);
+    }
+
+    if (event.target === this.elements.titleInput) {
+      this.resizeTitleInput();
     }
 
     this.scheduleDirtySync();
