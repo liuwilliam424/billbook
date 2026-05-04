@@ -3,10 +3,10 @@ const {
   BrowserWindow,
   dialog,
   ipcMain,
-  safeStorage,
   shell,
   systemPreferences
 } = require("electron");
+const electron = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
@@ -32,7 +32,7 @@ let watcher = null;
 let touchIDUnlockPromise = null;
 let touchIDUnlockedThisSession = false;
 const settingsStore = createSettingsStore(app);
-const secureStore = createSecureStore(app, safeStorage);
+const secureStore = createSecureStore(app, () => electron.safeStorage);
 const financeService = createFinanceService({
   app,
   dialog,

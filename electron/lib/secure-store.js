@@ -9,6 +9,10 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
     return path.join(app.getPath("userData"), fileName);
   }
 
+  function getSafeStorage() {
+    return typeof safeStorage === "function" ? safeStorage() : safeStorage;
+  }
+
   async function load() {
     if (cache) {
       return cache;
@@ -41,7 +45,8 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
         }
 
         if (payload.encrypted && typeof payload.data === "string") {
-          const decrypted = safeStorage.decryptString(Buffer.from(payload.data, "base64"));
+          const storage = getSafeStorage();
+          const decrypted = storage.decryptString(Buffer.from(payload.data, "base64"));
           cache = JSON.parse(decrypted);
           return cache;
         }
@@ -77,9 +82,10 @@ function createSecureStore(app, safeStorage, fileName = "secure-store.json") {
     await fsp.mkdir(app.getPath("userData"), { recursive: true });
 
     const serialized = JSON.stringify(cache, null, 2);
+    const storage = getSafeStorage();
 
-    if (safeStorage.isEncryptionAvailable()) {
-      const encrypted = safeStorage.encryptString(serialized);
+    if (storage.isEncryptionAvailable()) {
+      const encrypted = storage.encryptString(serialized);
       await fsp.writeFile(
         getStorePath(),
         JSON.stringify(
