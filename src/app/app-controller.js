@@ -324,6 +324,19 @@ export class BillbookApp {
     });
   }
 
+  restoreEditorScroll(scrollTop) {
+    const form = this.elements.editorForm;
+
+    if (!form) {
+      return;
+    }
+
+    form.scrollTop = scrollTop;
+    window.requestAnimationFrame(() => {
+      form.scrollTop = scrollTop;
+    });
+  }
+
   readSectionInputs() {
     return Object.fromEntries(
       DAILY_PROMPTS.map(({ key }) => [key, this.elements.sectionInputs[key].value])
@@ -799,14 +812,19 @@ export class BillbookApp {
     }
 
     try {
+      const editorScrollTop = this.elements.editorForm.scrollTop;
       const previousFilePath = this.state.selectedFilePath;
       const { entry } = await this.gateway.saveEntry(this.state.currentEntry);
       this.markInternalWrite(previousFilePath);
       this.markInternalWrite(entry.filePath);
-      this.state.entries = this.state.entries.filter((item) => item.filePath !== this.state.selectedFilePath);
-      this.setCurrentEntry(entry);
+      this.state.currentEntry = cloneEntry(entry);
+      this.state.selectedFilePath = entry.filePath || "";
+      this.state.savedSnapshot = snapshotEntry(entry);
+      this.state.hasExternalChanges = false;
+      this.state.externalChangeMessage = "";
+      this.syncDirtyState();
       await this.loadEntries();
-      renderApp(this.state, this.elements);
+      this.restoreEditorScroll(editorScrollTop);
       return true;
     } catch (error) {
       await this.showConfirmDialog({
