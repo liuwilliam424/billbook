@@ -9,6 +9,23 @@ const OURA_SCOPE = "daily";
 const OURA_CONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 const OURA_EXPIRY_SKEW_MS = 60 * 1000;
 
+function getNextDateString(dateString) {
+  const value = typeof dateString === "string" ? dateString.trim() : "";
+
+  if (!value) {
+    return value;
+  }
+
+  const parsed = new Date(`${value}T12:00:00Z`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  parsed.setUTCDate(parsed.getUTCDate() + 1);
+  return parsed.toISOString().slice(0, 10);
+}
+
 function createOuraService({ settingsStore, secureStore, shell }) {
   async function loadSecrets() {
     const secrets = await secureStore.load();
@@ -349,8 +366,8 @@ function createOuraService({ settingsStore, secureStore, shell }) {
     const accessToken = await ensureAccessToken();
     const params = new URLSearchParams({
       start_date: dateString,
-      end_date: dateString,
-      fields: "total_sleep_duration,type,bedtime_end"
+      end_date: getNextDateString(dateString),
+      fields: "day,total_sleep_duration,type,bedtime_end"
     });
     const response = await fetch(`${OURA_SLEEP_URL}?${params.toString()}`, {
       headers: {
