@@ -802,6 +802,20 @@ textarea {
   width: min(680px, calc(100vw - 32px));
 }
 
+.oura-dialog-card {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.oura-credentials-fields {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.oura-input {
+  padding: 11px 13px;
+}
+
 .finance-account-list {
   display: grid;
   gap: 10px;

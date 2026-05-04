@@ -13,6 +13,7 @@ export function getElements() {
     sidebarMenu: document.querySelector("#sidebar-menu"),
     sidebarMenuButton: document.querySelector("#sidebar-menu-button"),
     connectSimplefinButton: document.querySelector("#connect-simplefin-button"),
+    connectOuraButton: document.querySelector("#connect-oura-button"),
     configureFinanceButton: document.querySelector("#configure-finance-button"),
     backupJournalButton: document.querySelector("#backup-journal-button"),
     editorForm: document.querySelector("#editor-form"),
@@ -37,6 +38,11 @@ export function getElements() {
     financeAccountList: document.querySelector("#finance-account-list"),
     financeCancelButton: document.querySelector("#finance-cancel-button"),
     financeSaveButton: document.querySelector("#finance-save-button"),
+    ouraCredentialsDialog: document.querySelector("#oura-credentials-dialog"),
+    ouraClientIdInput: document.querySelector("#oura-client-id"),
+    ouraClientSecretInput: document.querySelector("#oura-client-secret"),
+    ouraCancelButton: document.querySelector("#oura-cancel-button"),
+    ouraSaveButton: document.querySelector("#oura-save-button"),
     folderToast: document.querySelector("#folder-toast")
   };
 }

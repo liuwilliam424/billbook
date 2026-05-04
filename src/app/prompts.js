@@ -4,7 +4,8 @@ export const DAILY_PROMPTS = [
   { key: "predictions", label: "Predictions" },
   { key: "news", label: "News" },
   { key: "happiness", label: "Happiness" },
-  { key: "finances", label: "Finances" }
+  { key: "finances", label: "Finances" },
+  { key: "sleep", label: "Sleep" }
 ];
 
 export function createEmptySections() {

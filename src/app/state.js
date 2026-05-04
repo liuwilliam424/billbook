@@ -14,6 +14,7 @@ export function createInitialState() {
     isSidebarMenuOpen: false,
     folderToastTimeoutId: null,
     financeConnected: false,
-    financeConfigured: false
+    financeConfigured: false,
+    ouraConnected: false
   };
 }

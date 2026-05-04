@@ -42,6 +42,9 @@
               <button id="connect-simplefin-button" class="sidebar-menu-item" type="button">
                 Connect SimpleFIN
               </button>
+              <button id="connect-oura-button" class="sidebar-menu-item" type="button">
+                Connect Oura
+              </button>
               <button id="configure-finance-button" class="sidebar-menu-item" type="button">
                 Configure Finance Accounts
               </button>
@@ -147,6 +150,11 @@
               <span class="field-label">Finances</span>
               <textarea id="entry-finances" class="section-input" spellcheck="true"></textarea>
             </label>
+
+            <label class="field-group section-group" for="entry-sleep">
+              <span class="field-label">Sleep</span>
+              <textarea id="entry-sleep" class="section-input" spellcheck="true"></textarea>
+            </label>
           </div>
         </section>
       </main>
@@ -175,6 +183,39 @@
           </button>
           <button id="finance-save-button" class="button button-primary" type="button">
             Save Finance Setup
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="oura-credentials-dialog" class="confirm-dialog oura-dialog">
+      <form method="dialog" class="confirm-dialog-card oura-dialog-card">
+        <p class="confirm-title">Oura Credentials</p>
+        <p class="confirm-body">
+          Save your Oura client ID and client secret on this Mac so Billbook can complete the Oura
+          connection and pull last night's sleep duration.
+        </p>
+        <div class="oura-credentials-fields">
+          <label class="field-group" for="oura-client-id">
+            <span class="field-label">Client ID</span>
+            <input id="oura-client-id" class="text-input oura-input" type="text" autocomplete="off" />
+          </label>
+          <label class="field-group" for="oura-client-secret">
+            <span class="field-label">Client Secret</span>
+            <input
+              id="oura-client-secret"
+              class="text-input oura-input"
+              type="password"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+        <div class="confirm-actions oura-dialog-actions">
+          <button id="oura-cancel-button" class="button button-secondary" type="button">
+            Cancel
+          </button>
+          <button id="oura-save-button" class="button button-primary" type="button">
+            Save and Connect
           </button>
         </div>
       </form>

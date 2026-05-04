@@ -264,6 +264,15 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     return settingsStore.load();
   }
 
+  async function updateConnectionHint(connected) {
+    const settings = await loadSettings();
+    settings.integrations = {
+      ...(settings.integrations || {}),
+      simplefinConnectedHint: Boolean(connected)
+    };
+    await settingsStore.save(settings);
+  }
+
   async function chooseSetupTokenFile() {
     const defaultCandidates = [
       path.join(process.cwd(), ".env.dev"),
@@ -326,6 +335,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
       ...secrets,
       simplefinAccessUrl: accessUrl
     });
+    await updateConnectionHint(true);
     const response = await fetchAccounts(accessUrl, {
       "balances-only": 1
     });

@@ -9,7 +9,8 @@ const DAILY_PROMPTS = [
   { key: "predictions", heading: "Predictions" },
   { key: "news", heading: "News" },
   { key: "happiness", heading: "Happiness" },
-  { key: "finances", heading: "Finances" }
+  { key: "finances", heading: "Finances" },
+  { key: "sleep", heading: "Sleep" }
 ];
 
 const PROMPT_KEY_BY_HEADING = new Map(

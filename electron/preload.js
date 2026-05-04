@@ -20,6 +20,12 @@ contextBridge.exposeInMainWorld("journalApp", {
     saveConfig: (financeConfig) => ipcRenderer.invoke("finance:save-config", financeConfig),
     buildEntrySection: (dateString) => ipcRenderer.invoke("finance:build-entry-section", dateString)
   },
+  oura: {
+    getStatus: () => ipcRenderer.invoke("oura:get-status"),
+    saveClientCredentials: (credentials) => ipcRenderer.invoke("oura:save-client-credentials", credentials),
+    connect: () => ipcRenderer.invoke("oura:connect"),
+    buildEntrySection: (dateString) => ipcRenderer.invoke("oura:build-entry-section", dateString)
+  },
   app: {
     setDirty: (dirty) => ipcRenderer.invoke("app:set-dirty", dirty),
     closeAfterSave: () => ipcRenderer.invoke("app:close-after-save"),

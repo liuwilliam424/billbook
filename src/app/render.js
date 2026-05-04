@@ -28,6 +28,9 @@ function renderSidebarMenu(state, elements) {
   elements.connectSimplefinButton.textContent = state.financeConnected
     ? "Reconnect SimpleFIN"
     : "Connect SimpleFIN";
+  elements.connectOuraButton.textContent = state.ouraConnected
+    ? "Reconnect Oura"
+    : "Connect Oura";
   elements.configureFinanceButton.disabled = !state.financeConnected;
   elements.backupJournalButton.disabled = !canCreateBackup;
 }

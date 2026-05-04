@@ -4,6 +4,7 @@ const path = require("node:path");
 const fsp = require("node:fs/promises");
 const { createFinanceService } = require("./lib/finance-service");
 const { createJournalBackup } = require("./lib/journal-backup");
+const { createOuraService } = require("./lib/oura-service");
 const { createSecureStore } = require("./lib/secure-store");
 const { createSettingsStore } = require("./lib/settings-store");
 const {
@@ -26,6 +27,11 @@ const financeService = createFinanceService({
   dialog,
   settingsStore,
   secureStore
+});
+const ouraService = createOuraService({
+  settingsStore,
+  secureStore,
+  shell
 });
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
@@ -367,6 +373,20 @@ function registerFinanceHandlers() {
   );
 }
 
+function registerOuraHandlers() {
+  ipcMain.handle("oura:get-status", async () => ouraService.getStatus());
+
+  ipcMain.handle("oura:save-client-credentials", async (_event, credentials) =>
+    ouraService.saveClientCredentials(credentials)
+  );
+
+  ipcMain.handle("oura:connect", async () => ouraService.connect());
+
+  ipcMain.handle("oura:build-entry-section", async (_event, dateString) =>
+    ouraService.buildSleepSection(dateString)
+  );
+}
+
 function registerAppHandlers() {
   ipcMain.handle("app:set-dirty", (_event, dirty) => {
     isDirty = Boolean(dirty);
@@ -393,6 +413,7 @@ function registerIpcHandlers() {
   registerSettingsHandlers();
   registerJournalHandlers();
   registerFinanceHandlers();
+  registerOuraHandlers();
   registerAppHandlers();
 }
 

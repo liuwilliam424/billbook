@@ -7,6 +7,10 @@ function createDefaultSettings() {
     finance: {
       netWorthAccountIds: [],
       spendingAccountIds: []
+    },
+    integrations: {
+      simplefinConnectedHint: false,
+      ouraConnectedHint: false
     }
   };
 }
@@ -15,6 +19,9 @@ function normalizeSettings(settingsLike = {}) {
   const defaults = createDefaultSettings();
   const finance = settingsLike.finance && typeof settingsLike.finance === "object"
     ? settingsLike.finance
+    : {};
+  const integrations = settingsLike.integrations && typeof settingsLike.integrations === "object"
+    ? settingsLike.integrations
     : {};
 
   return {
@@ -29,6 +36,12 @@ function normalizeSettings(settingsLike = {}) {
       spendingAccountIds: Array.isArray(finance.spendingAccountIds)
         ? finance.spendingAccountIds.filter((value) => typeof value === "string" && value)
         : []
+    },
+    integrations: {
+      ...defaults.integrations,
+      ...integrations,
+      simplefinConnectedHint: Boolean(integrations.simplefinConnectedHint),
+      ouraConnectedHint: Boolean(integrations.ouraConnectedHint)
     }
   };
 }

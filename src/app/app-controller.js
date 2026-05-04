@@ -43,6 +43,10 @@ export class BillbookApp {
     ].join("\n");
   }
 
+  buildSleepUnavailableText() {
+    return "Duration: unavailable";
+  }
+
   extractNetWorthBlock(financeText) {
     const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
 
@@ -112,6 +116,17 @@ export class BillbookApp {
     } catch {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+    }
+
+    renderChrome(this.state, this.elements);
+  }
+
+  async refreshOuraStatus() {
+    try {
+      const status = await this.gateway.getOuraStatus();
+      this.state.ouraConnected = Boolean(status.connected);
+    } catch {
+      this.state.ouraConnected = false;
     }
 
     renderChrome(this.state, this.elements);
@@ -309,6 +324,47 @@ export class BillbookApp {
     });
   }
 
+  async showOuraCredentialsDialog() {
+    this.elements.ouraClientIdInput.value = "";
+    this.elements.ouraClientSecretInput.value = "";
+
+    return new Promise((resolve) => {
+      const cleanup = () => {
+        this.elements.ouraCancelButton.removeEventListener("click", handleCancel);
+        this.elements.ouraSaveButton.removeEventListener("click", handleSave);
+        this.elements.ouraCredentialsDialog.removeEventListener("cancel", handleCancel);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        this.elements.ouraCredentialsDialog.close("cancel");
+        resolve(null);
+      };
+
+      const handleSave = () => {
+        const clientId = this.elements.ouraClientIdInput.value.trim();
+        const clientSecret = this.elements.ouraClientSecretInput.value.trim();
+
+        if (!clientId || !clientSecret) {
+          this.showToast("Enter both the Oura client ID and client secret");
+          return;
+        }
+
+        cleanup();
+        this.elements.ouraCredentialsDialog.close("save");
+        resolve({
+          clientId,
+          clientSecret
+        });
+      };
+
+      this.elements.ouraCancelButton.addEventListener("click", handleCancel);
+      this.elements.ouraSaveButton.addEventListener("click", handleSave);
+      this.elements.ouraCredentialsDialog.addEventListener("cancel", handleCancel, { once: true });
+      this.elements.ouraCredentialsDialog.showModal();
+    });
+  }
+
   buildFinanceConfigFromDialog() {
     const netWorthAccountIds = [];
     const spendingAccountIds = [];
@@ -443,6 +499,28 @@ export class BillbookApp {
       const message = error.message || "Finance snapshot unavailable";
       this.showToast(message);
       return this.buildFinanceErrorText(message);
+    }
+  }
+
+  async buildSleepSectionForDate(dateString) {
+    if (!this.state.ouraConnected) {
+      return this.buildSleepUnavailableText();
+    }
+
+    try {
+      const result = await this.gateway.buildSleepSection(dateString);
+      const content = typeof result?.content === "string" ? result.content.trim() : "";
+
+      if (content) {
+        return content;
+      }
+
+      return this.buildSleepUnavailableText();
+    } catch (error) {
+      const message = error.message || "Oura sleep unavailable";
+      this.showToast(message);
+      await this.refreshOuraStatus();
+      return this.buildSleepUnavailableText();
     }
   }
 
@@ -594,6 +672,7 @@ export class BillbookApp {
     const draft = createBlankDraft();
     const financeText = await this.buildFinanceSectionForDate(draft.date);
     draft.sections.finances = await this.applyMonthlyNetWorthSnapshot(financeText, draft.date);
+    draft.sections.sleep = await this.buildSleepSectionForDate(draft.date);
     this.setCurrentEntry(draft, { markSaved: false });
     renderApp(this.state, this.elements);
     this.elements.titleInput.focus();
@@ -765,6 +844,38 @@ export class BillbookApp {
       await this.showConfirmDialog({
         title: "SimpleFIN unavailable",
         body: error.message || "Billbook could not connect to SimpleFIN.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
+  async handleConnectOura() {
+    this.closeSidebarMenu();
+
+    try {
+      const status = await this.gateway.getOuraStatus();
+
+      if (!status?.hasClientCredentials) {
+        const credentials = await this.showOuraCredentialsDialog();
+
+        if (!credentials) {
+          return;
+        }
+
+        await this.gateway.saveOuraClientCredentials(credentials);
+      }
+
+      const result = await this.gateway.connectOura();
+
+      if (result?.connected) {
+        await this.refreshOuraStatus();
+        this.showToast("Oura connected");
+      }
+    } catch (error) {
+      await this.refreshOuraStatus();
+      await this.showConfirmDialog({
+        title: "Oura unavailable",
+        body: error.message || "Billbook could not connect to Oura.",
         actions: [{ id: "ok", label: "OK", variant: "primary" }]
       });
     }
@@ -949,6 +1060,7 @@ export class BillbookApp {
       this.toggleSidebarMenu();
     });
     this.elements.connectSimplefinButton.addEventListener("click", async () => this.handleConnectSimplefin());
+    this.elements.connectOuraButton.addEventListener("click", async () => this.handleConnectOura());
     this.elements.configureFinanceButton.addEventListener("click", async () =>
       this.handleConfigureFinance()
     );
@@ -1038,7 +1150,13 @@ export class BillbookApp {
     const settings = await this.gateway.loadSettings();
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
-    await this.refreshFinanceStatus();
+    this.state.financeConfigured = Boolean(
+      settings.finance?.netWorthAccountIds?.length || settings.finance?.spendingAccountIds?.length
+    );
+    this.state.financeConnected = Boolean(
+      settings.integrations?.simplefinConnectedHint || this.state.financeConfigured
+    );
+    this.state.ouraConnected = Boolean(settings.integrations?.ouraConnectedHint);
     await this.loadEntries({ preserveSelection: false });
     renderApp(this.state, this.elements);
   }

@@ -24,6 +24,8 @@ The renderer should not do any of those things directly.
   Handles Markdown parsing, file layout, and save logic.
 - `lib/finance-service.js`
   Owns the SimpleFIN integration and generates one-time finance snapshots for new entries.
+- `lib/oura-service.js`
+  Owns the Oura OAuth flow and generates one-time sleep snapshots for new entries.
 - `lib/secure-store.js`
   Stores sensitive local credentials outside the journal files.
 
@@ -69,6 +71,10 @@ That work belongs in `lib/journal-store.js`.
 - `finance.listAccounts`
 - `finance.saveConfig`
 - `finance.buildEntrySection`
+- `oura.getStatus`
+- `oura.saveClientCredentials`
+- `oura.connect`
+- `oura.buildEntrySection`
 - `app.setDirty`
 - `app.closeAfterSave`
 - `app.onSaveBeforeClose`
@@ -91,7 +97,7 @@ The preload bridge keeps the UI code cleaner and easier to replace later.
 It should stay focused on:
 
 - Markdown frontmatter parsing
-- parsing and serializing the six journal sections
+- parsing and serializing the seven journal sections
 - entry file naming
 - week-based folder layout
 - safe file writes
