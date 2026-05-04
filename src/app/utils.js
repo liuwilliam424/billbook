@@ -156,3 +156,8 @@ export function getSelectedWeekKey(currentEntry) {
 
   return getWeekKey(currentEntry.date);
 }
+
+export function getCalendarMonthKey(dateString) {
+  const [year, month] = dateString.split("-");
+  return year && month ? `${year}-${month}` : "";
+}

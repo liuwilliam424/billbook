@@ -182,7 +182,7 @@ function renderNetWorthSection(accounts = [], dateString) {
     groupedByCurrency.set(currency, currentGroup + toNumber(account.balance));
   }
 
-  const lines = ["### Net Worth"];
+  const lines = ["Net Worth"];
 
   if (groupedByCurrency.size === 1) {
     const [[currency, total]] = groupedByCurrency.entries();
@@ -210,7 +210,7 @@ function renderNetWorthSection(accounts = [], dateString) {
 }
 
 function renderSpendingSection(account, transactions = []) {
-  const lines = [`### ${account.name}`];
+  const lines = [account.name];
 
   if (!transactions.length) {
     lines.push("- No charges captured for this day.");

@@ -6,6 +6,7 @@ import {
   cloneEntry,
   createBlankDraft,
   getBasename,
+  getCalendarMonthKey,
   getSelectedMonthKey,
   getSelectedWeekKey,
   getSelectedYearKey,
@@ -33,11 +34,79 @@ export class BillbookApp {
 
   buildFinanceErrorText(message) {
     return [
-      "### Finance Snapshot Error",
+      "Finance Snapshot Error",
       message || "Billbook could not generate the finance snapshot for this entry.",
       "",
       "You can reconnect or reconfigure SimpleFIN from the sidebar menu, or replace this text manually."
     ].join("\n");
+  }
+
+  extractNetWorthBlock(financeText) {
+    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
+
+    if (!normalized) {
+      return null;
+    }
+
+    const match = normalized.match(
+      /^(?:###\s+)?Net Worth\s*\n([^\n]+)\n(As of [^\n]+)(?:\n|$)/im
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      block: `Net Worth\n${match[1].trim()}\n${match[2].trim()}`,
+      amountLine: match[1].trim(),
+      asOfLine: match[2].trim()
+    };
+  }
+
+  replaceNetWorthBlock(financeText, replacementBlock) {
+    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
+
+    if (!normalized || !replacementBlock) {
+      return normalized;
+    }
+
+    return normalized.replace(
+      /^(?:###\s+)?Net Worth\s*\n[^\n]+\nAs of [^\n]+/im,
+      replacementBlock.trim()
+    );
+  }
+
+  async findMonthlyNetWorthSnapshot(dateString) {
+    const monthKey = getCalendarMonthKey(dateString);
+
+    if (!monthKey) {
+      return null;
+    }
+
+    const monthEntries = this.state.entries
+      .filter((entry) => entry?.filePath && getCalendarMonthKey(entry.date) === monthKey)
+      .sort((left, right) => {
+        if (left.date !== right.date) {
+          return left.date.localeCompare(right.date);
+        }
+
+        return left.createdAt.localeCompare(right.createdAt);
+      });
+
+    for (const monthEntry of monthEntries) {
+      try {
+        const fullEntry = await this.gateway.readEntry(monthEntry.filePath);
+        const snapshot = this.extractNetWorthBlock(fullEntry?.sections?.finances || "");
+
+        if (snapshot) {
+          return snapshot;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
   }
 
   async refreshFinanceStatus() {
@@ -321,6 +390,20 @@ export class BillbookApp {
     }
   }
 
+  async applyMonthlyNetWorthSnapshot(financeText, dateString) {
+    if (!financeText || /Finance Snapshot Error/i.test(financeText)) {
+      return financeText;
+    }
+
+    const existingMonthSnapshot = await this.findMonthlyNetWorthSnapshot(dateString);
+
+    if (!existingMonthSnapshot) {
+      return financeText;
+    }
+
+    return this.replaceNetWorthBlock(financeText, existingMonthSnapshot.block);
+  }
+
   async ensureJournalDirectory() {
     if (this.state.journalDirectory && !this.state.journalDirectoryMissing) {
       return true;
@@ -453,7 +536,8 @@ export class BillbookApp {
     }
 
     const draft = createBlankDraft();
-    draft.sections.finances = await this.buildFinanceSectionForDate(draft.date);
+    const financeText = await this.buildFinanceSectionForDate(draft.date);
+    draft.sections.finances = await this.applyMonthlyNetWorthSnapshot(financeText, draft.date);
     this.setCurrentEntry(draft, { markSaved: false });
     renderApp(this.state, this.elements);
     this.elements.titleInput.focus();
