@@ -502,13 +502,29 @@ textarea {
 .editor-toolbar {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   min-height: 58px;
   padding: 12px 0 12px;
   border-bottom: 1px solid var(--line);
 }
 
+.editor-toolbar-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.editor-toolbar-meta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 72px;
+  padding-top: 1px;
+}
+
 .editor-subtitle-button {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -612,31 +628,12 @@ textarea {
   display: none;
 }
 
-.editor-form-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-  padding-bottom: 4px;
-}
-
-.editor-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-.editor-form-label {
-  margin: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-soft);
-}
-
 .save-status-text {
   font-size: 0.74rem;
   color: var(--ink-soft);
+  white-space: nowrap;
+  line-height: 1.4;
+  text-align: right;
 }
 
 .save-status-text:not(.is-hidden) {
