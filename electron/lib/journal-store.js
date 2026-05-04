@@ -188,6 +188,29 @@ function summarizeSections(sectionsLike = {}) {
   return "";
 }
 
+function extractNetWorthSnapshot(sectionsLike = {}) {
+  const sections = normalizeSections(sectionsLike);
+  const finances = sections.finances || "";
+
+  if (!finances) {
+    return null;
+  }
+
+  const match = finances.match(
+    /^(?:###\s+)?Net Worth\s*\n([^\n]+)\n(As of [^\n]+)(?:\n|$)/im
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    amountLine: match[1].trim(),
+    asOfLine: match[2].trim(),
+    block: `Net Worth\n${match[1].trim()}\n${match[2].trim()}`
+  };
+}
+
 function serializeSections(sectionsLike = {}) {
   const sections = normalizeSections(sectionsLike);
 
@@ -336,6 +359,7 @@ async function readEntryFile(filePath) {
     createdAt: frontmatter.createdAt || stats.birthtime.toISOString(),
     updatedAt: frontmatter.updatedAt || stats.mtime.toISOString(),
     sections,
+    netWorthSnapshot: extractNetWorthSnapshot(sections),
     preview: summarizeSections(sections)
   };
 }
@@ -359,6 +383,7 @@ async function listEntries(rootDirectory) {
       date: entry.date,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
+      netWorthSnapshot: entry.netWorthSnapshot,
       preview: entry.preview
     }));
 }

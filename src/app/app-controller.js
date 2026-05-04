@@ -21,6 +21,7 @@ export class BillbookApp {
     this.state = createInitialState();
     this.elements = getElements();
     this.internalWriteGuards = new Map();
+    this.dirtySyncFrame = 0;
   }
 
   showToast(message) {
@@ -94,15 +95,8 @@ export class BillbookApp {
       });
 
     for (const monthEntry of monthEntries) {
-      try {
-        const fullEntry = await this.gateway.readEntry(monthEntry.filePath);
-        const snapshot = this.extractNetWorthBlock(fullEntry?.sections?.finances || "");
-
-        if (snapshot) {
-          return snapshot;
-        }
-      } catch {
-        continue;
+      if (monthEntry?.netWorthSnapshot?.block) {
+        return monthEntry.netWorthSnapshot;
       }
     }
 
@@ -164,6 +158,40 @@ export class BillbookApp {
   syncDirtyState() {
     void this.gateway.setDirty(isDirty(this.state));
     renderSaveStatus(this.state, this.elements);
+  }
+
+  scheduleDirtySync() {
+    if (this.dirtySyncFrame) {
+      return;
+    }
+
+    this.dirtySyncFrame = window.requestAnimationFrame(() => {
+      this.dirtySyncFrame = 0;
+      this.syncDirtyState();
+    });
+  }
+
+  applyInputToCurrentEntry(target) {
+    if (!this.state.currentEntry || !target) {
+      return;
+    }
+
+    if (target === this.elements.dateInput) {
+      this.state.currentEntry.date = target.value;
+      return;
+    }
+
+    if (target === this.elements.titleInput) {
+      this.state.currentEntry.title = target.value;
+      return;
+    }
+
+    for (const { key } of DAILY_PROMPTS) {
+      if (target === this.elements.sectionInputs[key]) {
+        this.state.currentEntry.sections[key] = target.value;
+        return;
+      }
+    }
   }
 
   markInternalWrite(filePath) {
@@ -751,10 +779,9 @@ export class BillbookApp {
     }
   }
 
-  handleEditorInput() {
-    this.updateCurrentEntryFromInputs();
-    this.syncDirtyState();
-    renderEditor(this.state, this.elements);
+  handleEditorInput(event) {
+    this.applyInputToCurrentEntry(event.target);
+    this.scheduleDirtySync();
   }
 
   async handleExternalChanges(payload) {
@@ -898,11 +925,11 @@ export class BillbookApp {
     this.elements.newEntryButton.addEventListener("click", () => this.handleNewEntry());
     this.elements.reloadEntryButton.addEventListener("click", () => this.handleReloadFromDisk());
     this.elements.keepMineButton.addEventListener("click", () => this.handleKeepMine());
-    this.elements.dateInput.addEventListener("input", () => this.handleEditorInput());
-    this.elements.titleInput.addEventListener("input", () => this.handleEditorInput());
+    this.elements.dateInput.addEventListener("input", (event) => this.handleEditorInput(event));
+    this.elements.titleInput.addEventListener("input", (event) => this.handleEditorInput(event));
 
     for (const input of Object.values(this.elements.sectionInputs)) {
-      input.addEventListener("input", () => this.handleEditorInput());
+      input.addEventListener("input", (event) => this.handleEditorInput(event));
     }
 
     this.elements.entriesTree.addEventListener("click", async (event) => {
