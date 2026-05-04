@@ -22,6 +22,7 @@ export class BillbookApp {
     this.elements = getElements();
     this.internalWriteGuards = new Map();
     this.dirtySyncFrame = 0;
+    this.sectionResizeFrame = 0;
   }
 
   showToast(message) {
@@ -128,6 +129,7 @@ export class BillbookApp {
     this.syncSectionInputs(entry.sections);
 
     renderEditor(this.state, this.elements);
+    this.queueSectionInputHeightSync();
     this.syncDirtyState();
   }
 
@@ -137,6 +139,32 @@ export class BillbookApp {
     for (const { key } of DAILY_PROMPTS) {
       this.elements.sectionInputs[key].value = sections[key];
     }
+  }
+
+  resizeSectionInput(input) {
+    if (!input) {
+      return;
+    }
+
+    input.style.height = "0px";
+    input.style.height = `${Math.max(130, input.scrollHeight)}px`;
+  }
+
+  syncSectionInputHeights() {
+    for (const input of Object.values(this.elements.sectionInputs)) {
+      this.resizeSectionInput(input);
+    }
+  }
+
+  queueSectionInputHeightSync() {
+    if (this.sectionResizeFrame) {
+      window.cancelAnimationFrame(this.sectionResizeFrame);
+    }
+
+    this.sectionResizeFrame = window.requestAnimationFrame(() => {
+      this.sectionResizeFrame = 0;
+      this.syncSectionInputHeights();
+    });
   }
 
   readSectionInputs() {
@@ -781,6 +809,11 @@ export class BillbookApp {
 
   handleEditorInput(event) {
     this.applyInputToCurrentEntry(event.target);
+
+    if (event.target?.classList?.contains("section-input")) {
+      this.resizeSectionInput(event.target);
+    }
+
     this.scheduleDirtySync();
   }
 
