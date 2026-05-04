@@ -505,11 +505,11 @@ export class BillbookApp {
 
     const action = await this.showConfirmDialog({
       title: "Unsaved changes",
-      body: "Save your current entry before continuing?",
+      body: "Save this entry before continuing?",
       actions: [
-        { id: "save", label: "Save Changes", variant: "primary" },
-        { id: "discard", label: "Discard Changes", variant: "secondary" },
-        { id: "cancel", label: "Cancel", variant: "secondary" }
+        { id: "cancel", label: "Cancel", variant: "secondary" },
+        { id: "discard", label: "Discard", variant: "secondary" },
+        { id: "save", label: "Save Entry", variant: "primary" }
       ]
     });
 
