@@ -234,7 +234,7 @@ textarea {
   flex-direction: column;
   width: max-content;
   min-width: 0;
-  max-width: min(240px, calc(100vw - 48px));
+  max-width: min(320px, calc(100vw - 48px));
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -311,11 +311,12 @@ textarea {
 
 .sidebar-menu-status-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 18px;
   padding: 3px 0;
   font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .sidebar-menu-status-name {
@@ -325,6 +326,7 @@ textarea {
 .sidebar-menu-status-value {
   color: var(--ink-faint);
   text-align: right;
+  white-space: nowrap;
 }
 
 .sidebar-menu-status-value.is-error {

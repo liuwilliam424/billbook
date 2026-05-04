@@ -23,6 +23,7 @@ export function createJournalGateway(api) {
     saveOuraClientCredentials: (credentials) => api.oura.saveClientCredentials(credentials),
     connectOura: () => api.oura.connect(),
     buildSleepSection: (dateString) => api.oura.buildEntrySection(dateString),
+    getIntegrationStatuses: (options) => api.app.getIntegrationStatuses(options),
     setDirty: (dirty) => api.app.setDirty(dirty),
     closeAfterSave: () => api.app.closeAfterSave(),
     onSaveBeforeClose: (callback) => api.app.onSaveBeforeClose(callback),

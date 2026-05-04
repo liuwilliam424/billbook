@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld("journalApp", {
     buildEntrySection: (dateString) => ipcRenderer.invoke("oura:build-entry-section", dateString)
   },
   app: {
+    getIntegrationStatuses: (options) => ipcRenderer.invoke("app:get-integration-statuses", options),
     setDirty: (dirty) => ipcRenderer.invoke("app:set-dirty", dirty),
     closeAfterSave: () => ipcRenderer.invoke("app:close-after-save"),
     onSaveBeforeClose: (callback) => {

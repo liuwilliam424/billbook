@@ -406,6 +406,21 @@ function registerOuraHandlers() {
 }
 
 function registerAppHandlers() {
+  ipcMain.handle("app:get-integration-statuses", async (_event, options = {}) => {
+    const autoConnect = Boolean(options?.autoConnect);
+    const finance = autoConnect
+      ? await financeService.autoConnect()
+      : await financeService.getStatus();
+    const oura = autoConnect
+      ? await ouraService.autoConnect()
+      : await ouraService.getStatus();
+
+    return {
+      finance,
+      oura
+    };
+  });
+
   ipcMain.handle("app:set-dirty", (_event, dirty) => {
     isDirty = Boolean(dirty);
 

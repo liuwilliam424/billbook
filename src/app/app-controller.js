@@ -148,51 +148,51 @@ export class BillbookApp {
     renderChrome(this.state, this.elements);
   }
 
-  async autoConnectIntegrations({ showErrors = false } = {}) {
+  applyIntegrationStatuses({ finance = {}, oura = {} } = {}) {
+    this.state.financeConnected = Boolean(finance.connected);
+    this.state.financeConfigured = Boolean(finance.configured);
+    this.state.financeRequiresReconnect = Boolean(finance.requiresReconnect);
+    this.state.financeStatusError = finance.statusMessage || "";
+    this.state.ouraConnected = Boolean(oura.connected);
+    this.state.ouraHasClientCredentials = Boolean(oura.hasClientCredentials);
+    this.state.ouraStatusError = oura.error || "";
+  }
+
+  async refreshIntegrationStatuses({ autoConnect = false, showErrors = false } = {}) {
     try {
-      const financeStatus = await this.gateway.autoConnectSimplefin();
-      this.state.financeConnected = Boolean(financeStatus?.connected);
-      this.state.financeConfigured = Boolean(financeStatus?.configured);
-      this.state.financeRequiresReconnect = Boolean(financeStatus?.requiresReconnect);
-      this.state.financeStatusError = financeStatus?.statusMessage || "";
+      const statuses = await this.gateway.getIntegrationStatuses({ autoConnect });
+      this.applyIntegrationStatuses(statuses);
+
+      if (showErrors && statuses?.finance?.statusMessage) {
+        this.showToast(statuses.finance.statusMessage);
+      }
+
+      if (showErrors && statuses?.oura?.error) {
+        this.showToast(statuses.oura.error);
+      }
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
       this.state.financeRequiresReconnect = false;
       this.state.financeStatusError = error.message || "Status unavailable";
-
-      if (showErrors) {
-        this.showToast(this.state.financeStatusError || "Billbook could not unlock SimpleFIN on startup");
-      }
-    }
-
-    renderChrome(this.state, this.elements);
-
-    try {
-      const ouraStatus = await this.gateway.autoConnectOura();
-      this.state.ouraConnected = Boolean(ouraStatus?.connected);
-      this.state.ouraHasClientCredentials = Boolean(ouraStatus?.hasClientCredentials);
-      this.state.ouraStatusError = ouraStatus?.error || "";
-
-      if (showErrors && ouraStatus?.error) {
-        this.showToast(ouraStatus.error);
-      }
-    } catch (error) {
       this.state.ouraConnected = false;
       this.state.ouraHasClientCredentials = false;
       this.state.ouraStatusError = error.message || "Status unavailable";
 
       if (showErrors) {
-        this.showToast(this.state.ouraStatusError || "Billbook could not unlock Oura on startup");
+        this.showToast(error.message || "Billbook could not refresh integrations.");
       }
     }
 
     renderChrome(this.state, this.elements);
   }
 
+  async autoConnectIntegrations({ showErrors = false } = {}) {
+    await this.refreshIntegrationStatuses({ autoConnect: true, showErrors });
+  }
+
   async refreshSidebarIntegrationStatuses({ showErrors = false } = {}) {
-    await this.refreshFinanceStatus({ showErrors });
-    await this.refreshOuraStatus({ showErrors });
+    await this.refreshIntegrationStatuses({ autoConnect: false, showErrors });
   }
 
   setCurrentEntry(entry, { markSaved = true } = {}) {
