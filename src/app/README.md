@@ -26,7 +26,7 @@ The renderer is intentionally split into three kinds of modules:
 - `utils.js`
   Shared pure helpers.
 - `prompts.js`
-  Defines the fixed daily prompt schema used by the editor and draft snapshots.
+  Defines the fixed journal section schema used by the editor and draft snapshots.
 - `render.js`
   Top-level renderer for editor chrome and screen states.
 - `sidebar.js`
@@ -97,6 +97,8 @@ Examples:
   Start in `electron/`, then expose it through `journal-gateway.js`.
 - Change the daily prompt structure:
   Update `prompts.js`, then adjust the journal store serialization and editor markup together.
+- Add or change finance setup flows:
+  Put Electron/network calls behind `journal-gateway.js`, then orchestrate the UI flow in `app-controller.js`.
 - Add a new editor banner or visual state:
   Put rendering in `render.js`, with any derived mode logic in `view-state.js`.
 - Add a new sidebar grouping rule:

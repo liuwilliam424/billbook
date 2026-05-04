@@ -22,6 +22,10 @@ The renderer should not do any of those things directly.
   Reads and writes Billbook settings.
 - `lib/journal-store.js`
   Handles Markdown parsing, file layout, and save logic.
+- `lib/finance-service.js`
+  Owns the SimpleFIN integration and generates one-time finance snapshots for new entries.
+- `lib/secure-store.js`
+  Stores sensitive local credentials outside the journal files.
 
 ## The Electron Mental Model
 
@@ -60,6 +64,11 @@ That work belongs in `lib/journal-store.js`.
 - `journal.listEntries`
 - `journal.readEntry`
 - `journal.saveEntry`
+- `finance.getStatus`
+- `finance.connectFromFile`
+- `finance.listAccounts`
+- `finance.saveConfig`
+- `finance.buildEntrySection`
 - `app.setDirty`
 - `app.closeAfterSave`
 - `app.onSaveBeforeClose`
@@ -82,7 +91,7 @@ The preload bridge keeps the UI code cleaner and easier to replace later.
 It should stay focused on:
 
 - Markdown frontmatter parsing
-- parsing and serializing the five daily prompt sections
+- parsing and serializing the six journal sections
 - entry file naming
 - week-based folder layout
 - safe file writes

@@ -12,6 +12,8 @@ export function getElements() {
     entriesTree: document.querySelector("#entries-tree"),
     sidebarMenu: document.querySelector("#sidebar-menu"),
     sidebarMenuButton: document.querySelector("#sidebar-menu-button"),
+    connectSimplefinButton: document.querySelector("#connect-simplefin-button"),
+    configureFinanceButton: document.querySelector("#configure-finance-button"),
     backupJournalButton: document.querySelector("#backup-journal-button"),
     editorForm: document.querySelector("#editor-form"),
     emptyState: document.querySelector("#empty-state"),
@@ -31,6 +33,10 @@ export function getElements() {
     confirmTitle: document.querySelector("#confirm-title"),
     confirmBody: document.querySelector("#confirm-body"),
     confirmActions: document.querySelector("#confirm-actions"),
+    financeDialog: document.querySelector("#finance-dialog"),
+    financeAccountList: document.querySelector("#finance-account-list"),
+    financeCancelButton: document.querySelector("#finance-cancel-button"),
+    financeSaveButton: document.querySelector("#finance-save-button"),
     folderToast: document.querySelector("#folder-toast")
   };
 }

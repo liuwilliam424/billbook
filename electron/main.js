@@ -1,8 +1,10 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
+const { createFinanceService } = require("./lib/finance-service");
 const { createJournalBackup } = require("./lib/journal-backup");
+const { createSecureStore } = require("./lib/secure-store");
 const { createSettingsStore } = require("./lib/settings-store");
 const {
   ensureInsideRoot,
@@ -18,6 +20,13 @@ let allowClose = false;
 let isDirty = false;
 let watcher = null;
 const settingsStore = createSettingsStore(app);
+const secureStore = createSecureStore(app, safeStorage);
+const financeService = createFinanceService({
+  app,
+  dialog,
+  settingsStore,
+  secureStore
+});
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 
@@ -342,6 +351,22 @@ function registerJournalHandlers() {
   });
 }
 
+function registerFinanceHandlers() {
+  ipcMain.handle("finance:get-status", async () => financeService.getStatus());
+
+  ipcMain.handle("finance:connect-from-file", async () => financeService.connectFromFile());
+
+  ipcMain.handle("finance:list-accounts", async () => financeService.listAccounts());
+
+  ipcMain.handle("finance:save-config", async (_event, financeConfig) =>
+    financeService.saveFinanceConfig(financeConfig)
+  );
+
+  ipcMain.handle("finance:build-entry-section", async (_event, dateString) =>
+    financeService.buildFinanceSnapshot(dateString)
+  );
+}
+
 function registerAppHandlers() {
   ipcMain.handle("app:set-dirty", (_event, dirty) => {
     isDirty = Boolean(dirty);
@@ -367,6 +392,7 @@ function registerAppHandlers() {
 function registerIpcHandlers() {
   registerSettingsHandlers();
   registerJournalHandlers();
+  registerFinanceHandlers();
   registerAppHandlers();
 }
 

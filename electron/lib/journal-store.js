@@ -8,7 +8,8 @@ const DAILY_PROMPTS = [
   { key: "moments", heading: "Moments" },
   { key: "predictions", heading: "Predictions" },
   { key: "news", heading: "News" },
-  { key: "happiness", heading: "Happiness" }
+  { key: "happiness", heading: "Happiness" },
+  { key: "finances", heading: "Finances" }
 ];
 
 const PROMPT_KEY_BY_HEADING = new Map(

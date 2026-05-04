@@ -31,10 +31,23 @@ export class BillbookApp {
     }, 2600);
   }
 
+  async refreshFinanceStatus() {
+    try {
+      const status = await this.gateway.getFinanceStatus();
+      this.state.financeConnected = Boolean(status.connected);
+      this.state.financeConfigured = Boolean(status.configured);
+    } catch {
+      this.state.financeConnected = false;
+      this.state.financeConfigured = false;
+    }
+
+    renderChrome(this.state, this.elements);
+  }
+
   setCurrentEntry(entry, { markSaved = true } = {}) {
     this.state.currentEntry = cloneEntry(entry);
     this.state.selectedFilePath = entry.filePath || "";
-    this.state.savedSnapshot = markSaved ? snapshotEntry(entry) : this.state.savedSnapshot;
+    this.state.savedSnapshot = markSaved ? snapshotEntry(entry) : "";
     this.state.hasExternalChanges = false;
     this.state.externalChangeMessage = "";
 
@@ -148,6 +161,140 @@ export class BillbookApp {
       this.elements.confirmDialog.addEventListener("cancel", handleCancel, { once: true });
       this.elements.confirmDialog.showModal();
     });
+  }
+
+  async showFinanceWarnings(warnings = []) {
+    if (!Array.isArray(warnings) || !warnings.length) {
+      return;
+    }
+
+    await this.showConfirmDialog({
+      title: "SimpleFIN message",
+      body: warnings.join("\n"),
+      actions: [{ id: "ok", label: "OK", variant: "primary" }]
+    });
+  }
+
+  buildFinanceConfigFromDialog() {
+    const netWorthAccountIds = [];
+    const spendingAccountIds = [];
+
+    for (const checkbox of this.elements.financeAccountList.querySelectorAll("input[type='checkbox']")) {
+      if (!checkbox.checked) {
+        continue;
+      }
+
+      if (checkbox.dataset.role === "netWorth") {
+        netWorthAccountIds.push(checkbox.dataset.accountId);
+      }
+
+      if (checkbox.dataset.role === "spending") {
+        spendingAccountIds.push(checkbox.dataset.accountId);
+      }
+    }
+
+    return {
+      netWorthAccountIds,
+      spendingAccountIds
+    };
+  }
+
+  async showFinanceConfigDialog({ accounts, financeConfig }) {
+    this.elements.financeAccountList.innerHTML = "";
+
+    for (const account of accounts) {
+      const row = document.createElement("div");
+      row.className = "finance-account-row";
+
+      const copy = document.createElement("div");
+      copy.className = "finance-account-copy";
+
+      const name = document.createElement("p");
+      name.className = "finance-account-name";
+      name.textContent = account.name;
+
+      const meta = document.createElement("p");
+      meta.className = "finance-account-meta";
+      meta.textContent = account.connectionName
+        ? `${account.connectionName} · Balance ${account.balance.toFixed(2)} ${account.currency}`
+        : `Balance ${account.balance.toFixed(2)} ${account.currency}`;
+
+      copy.append(name, meta);
+
+      const controls = document.createElement("div");
+      controls.className = "finance-account-controls";
+
+      const netWorthLabel = document.createElement("label");
+      netWorthLabel.className = "finance-role-toggle";
+      const netWorthCheckbox = document.createElement("input");
+      netWorthCheckbox.type = "checkbox";
+      netWorthCheckbox.dataset.role = "netWorth";
+      netWorthCheckbox.dataset.accountId = account.id;
+      netWorthCheckbox.checked = financeConfig.netWorthAccountIds.includes(account.id);
+      const netWorthText = document.createElement("span");
+      netWorthText.textContent = "Net Worth";
+      netWorthLabel.append(netWorthCheckbox, netWorthText);
+
+      const spendingLabel = document.createElement("label");
+      spendingLabel.className = "finance-role-toggle";
+      const spendingCheckbox = document.createElement("input");
+      spendingCheckbox.type = "checkbox";
+      spendingCheckbox.dataset.role = "spending";
+      spendingCheckbox.dataset.accountId = account.id;
+      spendingCheckbox.checked = financeConfig.spendingAccountIds.includes(account.id);
+      const spendingText = document.createElement("span");
+      spendingText.textContent = "Spending";
+      spendingLabel.append(spendingCheckbox, spendingText);
+
+      controls.append(netWorthLabel, spendingLabel);
+      row.append(copy, controls);
+      this.elements.financeAccountList.append(row);
+    }
+
+    return new Promise((resolve) => {
+      const cleanup = () => {
+        this.elements.financeCancelButton.removeEventListener("click", handleCancel);
+        this.elements.financeSaveButton.removeEventListener("click", handleSave);
+        this.elements.financeDialog.removeEventListener("cancel", handleCancel);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        this.elements.financeDialog.close("cancel");
+        resolve(null);
+      };
+
+      const handleSave = () => {
+        const config = this.buildFinanceConfigFromDialog();
+        cleanup();
+        this.elements.financeDialog.close("save");
+        resolve(config);
+      };
+
+      this.elements.financeCancelButton.addEventListener("click", handleCancel);
+      this.elements.financeSaveButton.addEventListener("click", handleSave);
+      this.elements.financeDialog.addEventListener("cancel", handleCancel, { once: true });
+      this.elements.financeDialog.showModal();
+    });
+  }
+
+  async buildFinanceSectionForDate(dateString) {
+    if (!this.state.financeConnected || !this.state.financeConfigured) {
+      return "";
+    }
+
+    try {
+      const result = await this.gateway.buildFinanceSection(dateString);
+
+      if (Array.isArray(result?.warnings) && result.warnings.length) {
+        this.showToast(result.warnings[0]);
+      }
+
+      return typeof result?.content === "string" ? result.content : "";
+    } catch (error) {
+      this.showToast(error.message || "Finance snapshot unavailable");
+      return "";
+    }
   }
 
   async ensureJournalDirectory() {
@@ -281,7 +428,9 @@ export class BillbookApp {
       return;
     }
 
-    this.setCurrentEntry(createBlankDraft());
+    const draft = createBlankDraft();
+    draft.sections.finances = await this.buildFinanceSectionForDate(draft.date);
+    this.setCurrentEntry(draft, { markSaved: false });
     renderApp(this.state, this.elements);
     this.elements.titleInput.focus();
   }
@@ -411,6 +560,84 @@ export class BillbookApp {
       await this.showConfirmDialog({
         title: "Backup failed",
         body: error.message || "The journal backup could not be created.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
+  async handleConnectSimplefin() {
+    this.closeSidebarMenu();
+
+    try {
+      const result = await this.gateway.connectSimplefinFromFile();
+
+      if (result?.canceled) {
+        return;
+      }
+
+      await this.showFinanceWarnings(result?.warnings || []);
+      await this.refreshFinanceStatus();
+
+      if (!Array.isArray(result?.accounts) || !result.accounts.length) {
+        this.showToast("SimpleFIN connected");
+        return;
+      }
+
+      const financeConfig = await this.showFinanceConfigDialog({
+        accounts: result.accounts,
+        financeConfig: result.financeConfig
+      });
+
+      if (financeConfig) {
+        await this.gateway.saveFinanceConfig(financeConfig);
+        await this.refreshFinanceStatus();
+        this.showToast("SimpleFIN connected");
+        return;
+      }
+
+      this.showToast("SimpleFIN connected");
+    } catch (error) {
+      await this.refreshFinanceStatus();
+      await this.showConfirmDialog({
+        title: "SimpleFIN unavailable",
+        body: error.message || "Billbook could not connect to SimpleFIN.",
+        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      });
+    }
+  }
+
+  async handleConfigureFinance() {
+    this.closeSidebarMenu();
+
+    try {
+      const result = await this.gateway.listFinanceAccounts();
+      await this.showFinanceWarnings(result?.warnings || []);
+
+      if (!Array.isArray(result?.accounts) || !result.accounts.length) {
+        await this.showConfirmDialog({
+          title: "No finance accounts",
+          body: "Billbook could not find any connected SimpleFIN accounts yet.",
+          actions: [{ id: "ok", label: "OK", variant: "primary" }]
+        });
+        return;
+      }
+
+      const financeConfig = await this.showFinanceConfigDialog({
+        accounts: result.accounts,
+        financeConfig: result.financeConfig
+      });
+
+      if (!financeConfig) {
+        return;
+      }
+
+      await this.gateway.saveFinanceConfig(financeConfig);
+      await this.refreshFinanceStatus();
+      this.showToast("Finance accounts saved");
+    } catch (error) {
+      await this.showConfirmDialog({
+        title: "Finance setup unavailable",
+        body: error.message || "Billbook could not load your finance accounts.",
         actions: [{ id: "ok", label: "OK", variant: "primary" }]
       });
     }
@@ -553,6 +780,10 @@ export class BillbookApp {
       event.stopPropagation();
       this.toggleSidebarMenu();
     });
+    this.elements.connectSimplefinButton.addEventListener("click", async () => this.handleConnectSimplefin());
+    this.elements.configureFinanceButton.addEventListener("click", async () =>
+      this.handleConfigureFinance()
+    );
     this.elements.backupJournalButton.addEventListener("click", async () => this.handleCreateBackup());
     this.elements.chooseFolderButton.addEventListener("click", () => this.handleChooseFolder());
     this.elements.emptyStateButton.addEventListener("click", () => this.handleEmptyStateAction());
@@ -639,6 +870,7 @@ export class BillbookApp {
     const settings = await this.gateway.loadSettings();
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
+    await this.refreshFinanceStatus();
     await this.loadEntries({ preserveSelection: false });
     renderApp(this.state, this.elements);
   }

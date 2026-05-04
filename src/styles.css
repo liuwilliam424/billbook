@@ -766,3 +766,67 @@ textarea {
   gap: 10px;
   margin-top: 22px;
 }
+
+.finance-dialog-card {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.finance-account-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  max-height: min(52vh, 460px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.finance-account-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.finance-account-copy {
+  min-width: 0;
+}
+
+.finance-account-name {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.finance-account-meta {
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.finance-account-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.finance-role-toggle {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.finance-role-toggle input {
+  margin: 0;
+}
+
+.finance-dialog-actions {
+  margin-top: 18px;
+}

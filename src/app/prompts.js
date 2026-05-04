@@ -3,7 +3,8 @@ export const DAILY_PROMPTS = [
   { key: "moments", label: "Moments" },
   { key: "predictions", label: "Predictions" },
   { key: "news", label: "News" },
-  { key: "happiness", label: "Happiness" }
+  { key: "happiness", label: "Happiness" },
+  { key: "finances", label: "Finances" }
 ];
 
 export function createEmptySections() {

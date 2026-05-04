@@ -29,7 +29,9 @@ flowchart LR
   C --> D["Main Process (electron/main.js)"]
   D --> E["Journal Store (electron/lib/journal-store.js)"]
   D --> F["Settings Store (electron/lib/settings-store.js)"]
+  D --> H["Finance Service (electron/lib/finance-service.js)"]
   E --> G["Markdown files on disk"]
+  H --> I["SimpleFIN Bridge"]
 ```
 
 ## Folder Guide
@@ -42,6 +44,8 @@ flowchart LR
   Pure filesystem and Markdown persistence logic.
 - `electron/lib/settings-store.js`
   Stores Billbook app settings like the selected journal directory.
+- `electron/lib/finance-service.js`
+  Claims SimpleFIN setup tokens, fetches finance data, and builds the `Finances` snapshot text for new entries.
 - `src/renderer.js`
   The renderer entrypoint. It wires the Electron bridge to the app controller.
 - `src/app/app-controller.js`
@@ -83,7 +87,7 @@ That separation is intentional. It makes the renderer easier to reason about and
 
 When you press `Command-S`, this is roughly what happens:
 
-1. The renderer controller gathers the current `date`, `title`, and the five daily prompt sections.
+1. The renderer controller gathers the current `date`, `title`, and the six journal sections.
 2. The renderer calls the journal gateway.
 3. The gateway forwards that request through the preload bridge.
 4. The Electron main process receives the IPC request.
@@ -131,6 +135,16 @@ Did not read much today.
 ## Happiness
 
 A walk and a quiet dinner.
+
+## Finances
+
+### Net Worth
+$1,245.18
+As of April 18, 2026
+
+### Chase Freedom
+- Coffee shop — $5.80
+Total: $5.80
 ```
 
 ## Local Development

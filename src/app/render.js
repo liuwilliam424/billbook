@@ -25,6 +25,10 @@ function renderSidebarMenu(state, elements) {
   const canCreateBackup = Boolean(state.journalDirectory) && !state.journalDirectoryMissing;
   elements.sidebarMenu.classList.toggle("is-hidden", !state.isSidebarMenuOpen);
   elements.sidebarMenuButton.setAttribute("aria-expanded", state.isSidebarMenuOpen ? "true" : "false");
+  elements.connectSimplefinButton.textContent = state.financeConnected
+    ? "Reconnect SimpleFIN"
+    : "Connect SimpleFIN";
+  elements.configureFinanceButton.disabled = !state.financeConnected;
   elements.backupJournalButton.disabled = !canCreateBackup;
 }
 

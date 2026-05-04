@@ -1,6 +1,38 @@
 const path = require("node:path");
 const fsp = require("node:fs/promises");
 
+function createDefaultSettings() {
+  return {
+    journalDirectory: "",
+    finance: {
+      netWorthAccountIds: [],
+      spendingAccountIds: []
+    }
+  };
+}
+
+function normalizeSettings(settingsLike = {}) {
+  const defaults = createDefaultSettings();
+  const finance = settingsLike.finance && typeof settingsLike.finance === "object"
+    ? settingsLike.finance
+    : {};
+
+  return {
+    ...defaults,
+    ...settingsLike,
+    finance: {
+      ...defaults.finance,
+      ...finance,
+      netWorthAccountIds: Array.isArray(finance.netWorthAccountIds)
+        ? finance.netWorthAccountIds.filter((value) => typeof value === "string" && value)
+        : [],
+      spendingAccountIds: Array.isArray(finance.spendingAccountIds)
+        ? finance.spendingAccountIds.filter((value) => typeof value === "string" && value)
+        : []
+    }
+  };
+}
+
 function createSettingsStore(app, fileName = "settings.json") {
   let cache = null;
 
@@ -9,9 +41,9 @@ function createSettingsStore(app, fileName = "settings.json") {
   }
 
   async function save(settings) {
-    cache = settings;
+    cache = normalizeSettings(settings);
     await fsp.mkdir(app.getPath("userData"), { recursive: true });
-    await fsp.writeFile(getSettingsPath(), JSON.stringify(settings, null, 2), "utf8");
+    await fsp.writeFile(getSettingsPath(), JSON.stringify(cache, null, 2), "utf8");
     return cache;
   }
 
@@ -22,9 +54,9 @@ function createSettingsStore(app, fileName = "settings.json") {
 
     try {
       const raw = await fsp.readFile(getSettingsPath(), "utf8");
-      cache = JSON.parse(raw);
+      cache = normalizeSettings(JSON.parse(raw));
     } catch {
-      cache = { journalDirectory: "" };
+      cache = createDefaultSettings();
       await save(cache);
     }
 
@@ -38,5 +70,7 @@ function createSettingsStore(app, fileName = "settings.json") {
 }
 
 module.exports = {
-  createSettingsStore
+  createDefaultSettings,
+  createSettingsStore,
+  normalizeSettings
 };

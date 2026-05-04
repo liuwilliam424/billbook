@@ -13,6 +13,13 @@ contextBridge.exposeInMainWorld("journalApp", {
     createBackup: () => ipcRenderer.invoke("journal:create-backup"),
     saveEntry: (entry) => ipcRenderer.invoke("journal:save-entry", entry)
   },
+  finance: {
+    getStatus: () => ipcRenderer.invoke("finance:get-status"),
+    connectFromFile: () => ipcRenderer.invoke("finance:connect-from-file"),
+    listAccounts: () => ipcRenderer.invoke("finance:list-accounts"),
+    saveConfig: (financeConfig) => ipcRenderer.invoke("finance:save-config", financeConfig),
+    buildEntrySection: (dateString) => ipcRenderer.invoke("finance:build-entry-section", dateString)
+  },
   app: {
     setDirty: (dirty) => ipcRenderer.invoke("app:set-dirty", dirty),
     closeAfterSave: () => ipcRenderer.invoke("app:close-after-save"),

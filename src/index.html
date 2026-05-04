@@ -39,6 +39,12 @@
         <div class="sidebar-footer no-drag">
           <div class="sidebar-menu-wrap">
             <div id="sidebar-menu" class="sidebar-menu is-hidden">
+              <button id="connect-simplefin-button" class="sidebar-menu-item" type="button">
+                Connect SimpleFIN
+              </button>
+              <button id="configure-finance-button" class="sidebar-menu-item" type="button">
+                Configure Finance Accounts
+              </button>
               <button id="backup-journal-button" class="sidebar-menu-item" type="button">
                 Back Up Journal
               </button>
@@ -139,6 +145,11 @@
               <span class="field-label">Happiness</span>
               <textarea id="entry-happiness" class="section-input" spellcheck="true"></textarea>
             </label>
+
+            <label class="field-group section-group" for="entry-finances">
+              <span class="field-label">Finances</span>
+              <textarea id="entry-finances" class="section-input" spellcheck="true"></textarea>
+            </label>
           </div>
         </section>
       </main>
@@ -151,6 +162,24 @@
           Save your current work before continuing?
         </p>
         <div id="confirm-actions" class="confirm-actions"></div>
+      </form>
+    </dialog>
+
+    <dialog id="finance-dialog" class="confirm-dialog finance-dialog">
+      <form method="dialog" class="confirm-dialog-card finance-dialog-card">
+        <p class="confirm-title">Finance Accounts</p>
+        <p class="confirm-body">
+          Choose which connected accounts Billbook uses for net worth snapshots and daily spending.
+        </p>
+        <div id="finance-account-list" class="finance-account-list"></div>
+        <div class="confirm-actions finance-dialog-actions">
+          <button id="finance-cancel-button" class="button button-secondary" type="button">
+            Cancel
+          </button>
+          <button id="finance-save-button" class="button button-primary" type="button">
+            Save Finance Setup
+          </button>
+        </div>
       </form>
     </dialog>
 
