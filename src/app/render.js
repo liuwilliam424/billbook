@@ -116,6 +116,7 @@ function renderEditorSubtitle(state, elements, view) {
 function renderSectionLoadingStates(state, elements, showEditor) {
   for (const [key, input] of Object.entries(elements.sectionInputs)) {
     const loader = elements.sectionLoaders?.[key];
+    const refreshButton = elements.sectionRefreshButtons?.[key];
 
     if (!loader) {
       continue;
@@ -125,6 +126,11 @@ function renderSectionLoadingStates(state, elements, showEditor) {
     input.classList.toggle("is-hidden", loading);
     input.disabled = loading;
     loader.classList.toggle("is-hidden", !loading);
+
+    if (refreshButton) {
+      refreshButton.disabled = loading || !showEditor;
+      refreshButton.classList.toggle("is-loading", loading);
+    }
   }
 }
 

@@ -164,21 +164,35 @@
               <textarea id="entry-happiness" class="section-input" spellcheck="true"></textarea>
             </label>
 
-            <label class="field-group section-group" for="entry-finances">
-              <span class="field-label">Finances</span>
+            <div class="field-group section-group">
+              <button
+                class="field-label section-refresh-label"
+                type="button"
+                data-section-key="finances"
+                title="Refresh finances for this entry date."
+              >
+                Finances
+              </button>
               <div id="entry-finances-loading" class="section-loading is-hidden" aria-live="polite">
                 ...
               </div>
               <textarea id="entry-finances" class="section-input" spellcheck="true"></textarea>
-            </label>
+            </div>
 
-            <label class="field-group section-group" for="entry-sleep">
-              <span class="field-label">Sleep</span>
+            <div class="field-group section-group">
+              <button
+                class="field-label section-refresh-label"
+                type="button"
+                data-section-key="sleep"
+                title="Refresh sleep for this entry date."
+              >
+                Sleep
+              </button>
               <div id="entry-sleep-loading" class="section-loading is-hidden" aria-live="polite">
                 ...
               </div>
               <textarea id="entry-sleep" class="section-input" spellcheck="true"></textarea>
-            </label>
+            </div>
           </div>
         </section>
       </main>

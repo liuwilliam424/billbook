@@ -321,7 +321,7 @@ export class BillbookApp {
 
   applyAsyncSectionResult(token, key, content) {
     if (token !== this.sectionLoadToken || !this.state.currentEntry) {
-      return;
+      return false;
     }
 
     this.pendingSectionLoads.delete(key);
@@ -330,32 +330,71 @@ export class BillbookApp {
     this.setSectionLoading(key, false);
     this.queueSectionInputHeightSync();
     this.scheduleDirtySync();
+    return true;
+  }
+
+  async buildGeneratedSectionForDate(key, dateString) {
+    if (key === "finances") {
+      const financeText = await this.buildFinanceSectionForDate(dateString);
+      return this.applyMonthlyNetWorthSnapshot(financeText, dateString);
+    }
+
+    if (key === "sleep") {
+      return this.buildSleepSectionForDate(dateString);
+    }
+
+    return "";
+  }
+
+  getGeneratedSectionFallback(key, error) {
+    if (key === "finances") {
+      return this.buildFinanceErrorText(error?.message || "Finance snapshot unavailable");
+    }
+
+    if (key === "sleep") {
+      return this.buildSleepUnavailableText();
+    }
+
+    return "";
+  }
+
+  startGeneratedSectionLoad(key, dateString, { showToast = false } = {}) {
+    if (!["finances", "sleep"].includes(key) || this.state.loadingSections.has(key)) {
+      return null;
+    }
+
+    const token = this.sectionLoadToken;
+    const label = key === "finances" ? "Finances" : "Sleep";
+
+    this.setSectionLoading(key, true);
+
+    const task = this.buildGeneratedSectionForDate(key, dateString)
+      .then((content) => {
+        const applied = this.applyAsyncSectionResult(token, key, content);
+
+        if (applied && showToast) {
+          this.showToast(`${label} refreshed`);
+        }
+      })
+      .catch((error) => {
+        const applied = this.applyAsyncSectionResult(
+          token,
+          key,
+          this.getGeneratedSectionFallback(key, error)
+        );
+
+        if (applied && showToast) {
+          this.showToast(`${label} unavailable`);
+        }
+      });
+
+    this.pendingSectionLoads.set(key, task);
+    return task;
   }
 
   startGeneratedSectionLoads(dateString) {
-    const token = this.sectionLoadToken;
-    const financeTask = (async () => {
-      const financeText = await this.buildFinanceSectionForDate(dateString);
-      return this.applyMonthlyNetWorthSnapshot(financeText, dateString);
-    })()
-      .then((content) => this.applyAsyncSectionResult(token, "finances", content))
-      .catch((error) => {
-        this.applyAsyncSectionResult(
-          token,
-          "finances",
-          this.buildFinanceErrorText(error.message || "Finance snapshot unavailable")
-        );
-      });
-    const sleepTask = this.buildSleepSectionForDate(dateString)
-      .then((content) => this.applyAsyncSectionResult(token, "sleep", content))
-      .catch(() => {
-        this.applyAsyncSectionResult(token, "sleep", this.buildSleepUnavailableText());
-      });
-
-    this.pendingSectionLoads.set("finances", financeTask);
-    this.pendingSectionLoads.set("sleep", sleepTask);
-    this.setSectionLoading("finances", true);
-    this.setSectionLoading("sleep", true);
+    this.startGeneratedSectionLoad("finances", dateString);
+    this.startGeneratedSectionLoad("sleep", dateString);
   }
 
   syncSectionInputs(sectionsLike = {}) {
@@ -1251,6 +1290,21 @@ export class BillbookApp {
     this.scheduleDirtySync();
   }
 
+  handleRefreshGeneratedSection(sectionKey) {
+    if (!this.state.currentEntry || !["finances", "sleep"].includes(sectionKey)) {
+      return;
+    }
+
+    this.updateCurrentEntryFromInputs();
+
+    if (!this.state.currentEntry.date) {
+      this.state.currentEntry.date = createBlankDraft().date;
+      this.elements.dateInput.value = this.state.currentEntry.date;
+    }
+
+    this.startGeneratedSectionLoad(sectionKey, this.state.currentEntry.date, { showToast: true });
+  }
+
   async handleExternalChanges(payload) {
     if (this.shouldIgnoreDirectoryChange(payload)) {
       return;
@@ -1404,6 +1458,13 @@ export class BillbookApp {
 
     for (const input of Object.values(this.elements.sectionInputs)) {
       input.addEventListener("input", (event) => this.handleEditorInput(event));
+    }
+
+    for (const button of Object.values(this.elements.sectionRefreshButtons)) {
+      button?.addEventListener("click", (event) => {
+        event.preventDefault();
+        this.handleRefreshGeneratedSection(event.currentTarget.dataset.sectionKey);
+      });
     }
 
     this.elements.entriesTree.addEventListener("click", async (event) => {

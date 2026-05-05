@@ -34,6 +34,12 @@ export function getElements() {
     sectionInputs: Object.fromEntries(
       DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}`)])
     ),
+    sectionRefreshButtons: Object.fromEntries(
+      DAILY_PROMPTS.map(({ key }) => [
+        key,
+        document.querySelector(`.section-refresh-label[data-section-key="${key}"]`)
+      ])
+    ),
     sectionLoaders: Object.fromEntries(
       DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}-loading`)])
     ),

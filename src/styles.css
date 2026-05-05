@@ -77,6 +77,36 @@ textarea {
   color: var(--ink-soft);
 }
 
+button.field-label {
+  display: inline-flex;
+  width: max-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+button.field-label:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+button.field-label:focus-visible {
+  outline: 1px solid var(--line-strong);
+  outline-offset: 3px;
+}
+
+button.field-label:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.section-refresh-label.is-loading::after {
+  content: " refreshing";
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+}
+
 .sidebar-title-row {
   display: flex;
   align-items: baseline;
