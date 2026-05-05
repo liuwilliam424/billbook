@@ -84,6 +84,87 @@ export class BillbookApp {
     );
   }
 
+  parseMoneyDisplay(value) {
+    const raw = String(value || "").trim();
+    const match = raw.match(/-?\d[\d,]*(?:\.\d+)?/);
+
+    if (!match) {
+      return null;
+    }
+
+    const amount = Number(match[0].replace(/,/g, ""));
+
+    if (!Number.isFinite(amount)) {
+      return null;
+    }
+
+    const beforeAmount = raw.slice(0, match.index).trim();
+    const afterAmount = raw.slice(match.index + match[0].length).trim();
+    const trailingCurrency = afterAmount.match(/^[A-Z]{3}\b/);
+
+    return {
+      amount,
+      currencyToken: beforeAmount || trailingCurrency?.[0] || ""
+    };
+  }
+
+  formatSpendingImpact(total, netWorthTotal) {
+    if (!Number.isFinite(total) || !Number.isFinite(netWorthTotal) || netWorthTotal <= 0) {
+      return "";
+    }
+
+    const percent = (total / netWorthTotal) * 100;
+    return `${percent.toFixed(2)}% of net worth`;
+  }
+
+  applySpendingImpact(financeText) {
+    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
+
+    if (!normalized || /Finance Snapshot Error/i.test(normalized)) {
+      return normalized;
+    }
+
+    const netWorthBlock = this.extractNetWorthBlock(normalized);
+    const netWorth = this.parseMoneyDisplay(netWorthBlock?.amountLine);
+
+    if (!netWorth || netWorth.amount <= 0) {
+      return normalized;
+    }
+
+    const blocks = normalized.split(/\n{2,}/);
+    const updatedBlocks = blocks.map((block) => {
+      if (/^(?:###\s+)?Net Worth\s*$/im.test(block.split("\n")[0] || "")) {
+        return block.trim();
+      }
+
+      const lines = block
+        .split("\n")
+        .filter((line) => !/^Impact:\s*/i.test(line.trim()));
+      const totalLine = lines.find((line) => /^Total:\s*/i.test(line.trim()));
+
+      if (!totalLine) {
+        return lines.join("\n").trim();
+      }
+
+      const total = this.parseMoneyDisplay(totalLine.replace(/^Total:\s*/i, ""));
+
+      if (!total || total.amount <= 0) {
+        return lines.join("\n").trim();
+      }
+
+      const bothCurrenciesVisible = Boolean(netWorth.currencyToken && total.currencyToken);
+
+      if (bothCurrenciesVisible && netWorth.currencyToken !== total.currencyToken) {
+        return lines.join("\n").trim();
+      }
+
+      const impact = this.formatSpendingImpact(total.amount, netWorth.amount);
+      return [...lines, `Impact: ${impact}`].join("\n").trim();
+    });
+
+    return updatedBlocks.join("\n\n");
+  }
+
   async findMonthlyNetWorthSnapshot(dateString) {
     const monthKey = getCalendarMonthKey(dateString);
 
@@ -686,11 +767,11 @@ export class BillbookApp {
 
     const existingMonthSnapshot = await this.findMonthlyNetWorthSnapshot(dateString);
 
-    if (!existingMonthSnapshot) {
-      return financeText;
-    }
+    const finalFinanceText = existingMonthSnapshot
+      ? this.replaceNetWorthBlock(financeText, existingMonthSnapshot.block)
+      : financeText;
 
-    return this.replaceNetWorthBlock(financeText, existingMonthSnapshot.block);
+    return this.applySpendingImpact(finalFinanceText);
   }
 
   async ensureJournalDirectory() {
