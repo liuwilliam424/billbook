@@ -189,6 +189,7 @@ function selectTransactionsForDate(account, dateString) {
 
   return transactions
     .filter((transaction) => transaction && typeof transaction.id === "string")
+    .filter((transaction) => transaction.pending === true)
     .filter((transaction) => {
       const amount = toNumber(transaction.amount);
 
@@ -262,7 +263,7 @@ function renderSpendingSection(account, transactions = []) {
   const lines = [account.name];
 
   if (!transactions.length) {
-    lines.push("- No charges captured for this day.");
+    lines.push("- No pending charges captured for this day.");
     return lines.join("\n");
   }
 
