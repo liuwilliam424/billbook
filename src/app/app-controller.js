@@ -7,6 +7,7 @@ import {
   createBlankDraft,
   getBasename,
   getCalendarMonthKey,
+  parseLocalDate,
   getSelectedMonthKey,
   getSelectedWeekKey,
   getSelectedYearKey,
@@ -1290,7 +1291,48 @@ export class BillbookApp {
     this.scheduleDirtySync();
   }
 
-  handleRefreshGeneratedSection(sectionKey) {
+  getSectionAgeDays(dateString) {
+    if (!dateString) {
+      return 0;
+    }
+
+    const entryDate = parseLocalDate(dateString);
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+
+    if (Number.isNaN(entryDate.getTime())) {
+      return 0;
+    }
+
+    return Math.max(0, Math.floor((today.getTime() - entryDate.getTime()) / 86400000));
+  }
+
+  async confirmGeneratedSectionRefresh(sectionKey, dateString) {
+    const existingContent = this.elements.sectionInputs[sectionKey]?.value.trim();
+
+    if (!existingContent) {
+      return true;
+    }
+
+    const label = sectionKey === "finances" ? "finances" : "sleep";
+    const isOldFinanceSnapshot =
+      sectionKey === "finances" && this.getSectionAgeDays(dateString) >= 30;
+    const body = isOldFinanceSnapshot
+      ? "This will replace existing finance text. This entry is 30+ days old, and Chase or SimpleFIN may not return the same pending transactions anymore."
+      : `This will replace the current ${label} text for this entry.`;
+    const action = await this.showConfirmDialog({
+      title: `Replace ${label}?`,
+      body,
+      actions: [
+        { id: "cancel", label: "Cancel", variant: "secondary" },
+        { id: "replace", label: "Replace Section", variant: "primary" }
+      ]
+    });
+
+    return action === "replace";
+  }
+
+  async handleRefreshGeneratedSection(sectionKey) {
     if (!this.state.currentEntry || !["finances", "sleep"].includes(sectionKey)) {
       return;
     }
@@ -1300,6 +1342,15 @@ export class BillbookApp {
     if (!this.state.currentEntry.date) {
       this.state.currentEntry.date = createBlankDraft().date;
       this.elements.dateInput.value = this.state.currentEntry.date;
+    }
+
+    const canReplace = await this.confirmGeneratedSectionRefresh(
+      sectionKey,
+      this.state.currentEntry.date
+    );
+
+    if (!canReplace) {
+      return;
     }
 
     this.startGeneratedSectionLoad(sectionKey, this.state.currentEntry.date, { showToast: true });
@@ -1461,9 +1512,9 @@ export class BillbookApp {
     }
 
     for (const button of Object.values(this.elements.sectionRefreshButtons)) {
-      button?.addEventListener("click", (event) => {
+      button?.addEventListener("click", async (event) => {
         event.preventDefault();
-        this.handleRefreshGeneratedSection(event.currentTarget.dataset.sectionKey);
+        await this.handleRefreshGeneratedSection(event.currentTarget.dataset.sectionKey);
       });
     }
 
