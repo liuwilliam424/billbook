@@ -270,8 +270,11 @@ function renderSpendingSection(account, transactions = []) {
 
   for (const transaction of transactions) {
     const amount = Math.abs(toNumber(transaction.amount));
+    const pendingLabel = transaction.pending ? " (pending)" : "";
     total += amount;
-    lines.push(`- ${transaction.description || "Unlabeled charge"} — ${formatMoney(amount, account.currency || "USD")}`);
+    lines.push(
+      `- ${transaction.description || "Unlabeled charge"} — ${formatMoney(amount, account.currency || "USD")}${pendingLabel}`
+    );
   }
 
   lines.push(`Total: ${formatMoney(total, account.currency || "USD")}`);
@@ -513,7 +516,8 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     const { startDate, endDate } = toEpochRange(dateString);
     const response = await fetchSimplefinAccounts({
       "start-date": startDate,
-      "end-date": endDate
+      "end-date": endDate,
+      pending: 1
     });
     clearStatusCache();
 
