@@ -30,6 +30,26 @@ function formatDateLong(dateString) {
   });
 }
 
+function formatDate(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function getPreviousDateString(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+
+  if (Number.isNaN(date.getTime())) {
+    return dateString;
+  }
+
+  date.setDate(date.getDate() - 1);
+  return formatDate(date);
+}
+
 function toEpochRange(dateString) {
   const [year, month, day] = dateString.split("-").map(Number);
   const start = new Date(year, month - 1, day, 0, 0, 0, 0);
@@ -259,11 +279,12 @@ function renderNetWorthSection(accounts = [], dateString) {
   return lines.join("\n");
 }
 
-function renderSpendingSection(account, transactions = []) {
+function renderSpendingSection(account, transactions = [], spendingDateString) {
   const lines = [account.name];
+  lines.push(`Pending charges from ${formatDateLong(spendingDateString)}`);
 
   if (!transactions.length) {
-    lines.push("- No pending charges captured for this day.");
+    lines.push("- No pending charges captured.");
     return lines.join("\n");
   }
 
@@ -282,7 +303,7 @@ function renderSpendingSection(account, transactions = []) {
   return lines.join("\n");
 }
 
-function renderFinanceSection({ dateString, accounts, financeConfig }) {
+function renderFinanceSection({ dateString, spendingDateString, accounts, financeConfig }) {
   const netWorthAccounts = accounts.filter((account) =>
     financeConfig.netWorthAccountIds.includes(account.id)
   );
@@ -297,7 +318,13 @@ function renderFinanceSection({ dateString, accounts, financeConfig }) {
   }
 
   for (const account of spendingAccounts) {
-    blocks.push(renderSpendingSection(account, selectTransactionsForDate(account, dateString)));
+    blocks.push(
+      renderSpendingSection(
+        account,
+        selectTransactionsForDate(account, spendingDateString),
+        spendingDateString
+      )
+    );
   }
 
   return blocks.join("\n\n");
@@ -514,7 +541,8 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
       };
     }
 
-    const { startDate, endDate } = toEpochRange(dateString);
+    const spendingDateString = getPreviousDateString(dateString);
+    const { startDate, endDate } = toEpochRange(spendingDateString);
     const response = await fetchSimplefinAccounts({
       "start-date": startDate,
       "end-date": endDate,
@@ -525,6 +553,7 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
     return {
       content: renderFinanceSection({
         dateString,
+        spendingDateString,
         accounts: Array.isArray(response.accounts) ? response.accounts : [],
         financeConfig
       }),
