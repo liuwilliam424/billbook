@@ -130,6 +130,7 @@ function renderSectionLoadingStates(state, elements, showEditor) {
     if (refreshButton) {
       refreshButton.disabled = loading || !showEditor;
       refreshButton.classList.toggle("is-loading", loading);
+      refreshButton.textContent = loading ? "Refreshing" : refreshButton.dataset.label;
     }
   }
 }

@@ -101,12 +101,6 @@ button.field-label:disabled {
   opacity: 0.58;
 }
 
-.section-refresh-label.is-loading::after {
-  content: " refreshing";
-  color: var(--ink-faint);
-  letter-spacing: 0.08em;
-}
-
 .sidebar-title-row {
   display: flex;
   align-items: baseline;
