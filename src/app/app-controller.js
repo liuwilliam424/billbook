@@ -311,6 +311,8 @@ export class BillbookApp {
   }
 
   setSectionLoading(key, isLoading) {
+    const editorScrollTop = this.elements.editorForm.scrollTop;
+
     if (isLoading) {
       this.state.loadingSections.add(key);
     } else {
@@ -318,6 +320,7 @@ export class BillbookApp {
     }
 
     renderEditor(this.state, this.elements);
+    this.restoreEditorScroll(editorScrollTop);
   }
 
   applyAsyncSectionResult(token, key, content) {
@@ -325,11 +328,15 @@ export class BillbookApp {
       return false;
     }
 
+    const editorScrollTop = this.elements.editorForm.scrollTop;
     this.pendingSectionLoads.delete(key);
     this.state.currentEntry.sections[key] = content;
     this.elements.sectionInputs[key].value = content;
     this.setSectionLoading(key, false);
     this.queueSectionInputHeightSync();
+    window.requestAnimationFrame(() => {
+      this.restoreEditorScroll(editorScrollTop);
+    });
     this.scheduleDirtySync();
     return true;
   }

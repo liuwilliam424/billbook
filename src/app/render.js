@@ -123,6 +123,16 @@ function renderSectionLoadingStates(state, elements, showEditor) {
     }
 
     const loading = showEditor && state.loadingSections.has(key);
+
+    if (loading && !input.classList.contains("is-hidden")) {
+      const inputHeight = Math.ceil(input.getBoundingClientRect().height);
+      loader.style.minHeight = `${Math.max(84, inputHeight)}px`;
+    }
+
+    if (!loading) {
+      loader.style.minHeight = "";
+    }
+
     input.classList.toggle("is-hidden", loading);
     input.disabled = loading;
     loader.classList.toggle("is-hidden", !loading);
