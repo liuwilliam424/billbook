@@ -53,7 +53,7 @@ function getPreviousDateString(dateString) {
 function toEpochRange(dateString) {
   const [year, month, day] = dateString.split("-").map(Number);
   const start = new Date(year, month - 1, day, 0, 0, 0, 0);
-  const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+  const end = new Date(year, month - 1, day + 1, 0, 0, 0, 0);
 
   return {
     startDate: Math.floor(start.getTime() / 1000),
@@ -202,6 +202,13 @@ function normalizeFinanceConfig(configLike = {}) {
       ? configLike.spendingAccountIds.filter((value) => typeof value === "string" && value)
       : []
   };
+}
+
+function getConfiguredAccountIds(financeConfig) {
+  return [...new Set([
+    ...financeConfig.netWorthAccountIds,
+    ...financeConfig.spendingAccountIds
+  ])];
 }
 
 function selectTransactionsForDate(account, dateString) {
@@ -543,10 +550,12 @@ function createFinanceService({ app, dialog, settingsStore, secureStore }) {
 
     const spendingDateString = getPreviousDateString(dateString);
     const { startDate, endDate } = toEpochRange(spendingDateString);
+    const accountIds = getConfiguredAccountIds(financeConfig);
     const response = await fetchSimplefinAccounts({
       "start-date": startDate,
       "end-date": endDate,
-      pending: 1
+      pending: 1,
+      account: accountIds
     });
     clearStatusCache();
 

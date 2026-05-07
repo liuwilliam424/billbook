@@ -127,6 +127,16 @@ function createAccountsUrl(baseUrl, query = {}) {
       continue;
     }
 
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== undefined && item !== null && item !== "") {
+          url.searchParams.append(key, String(item));
+        }
+      }
+
+      continue;
+    }
+
     url.searchParams.set(key, String(value));
   }
 
