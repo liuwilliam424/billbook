@@ -743,7 +743,7 @@ button.field-label:disabled {
 
 .date-field {
   align-items: flex-start;
-  gap: 4px;
+  gap: 0;
 }
 
 .date-control {
@@ -755,14 +755,13 @@ button.field-label:disabled {
 .date-display-button {
   display: inline-flex;
   max-width: 100%;
-  padding: 2px 0 3px;
+  padding: 0 0 3px;
   border: 0;
   border-bottom: 1px solid transparent;
   background: transparent;
   color: var(--ink);
   cursor: pointer;
-  font-family: var(--editor-serif);
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   line-height: 1.25;
   text-align: left;
 }
