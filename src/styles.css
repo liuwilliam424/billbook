@@ -755,18 +755,19 @@ button.field-label:disabled {
 .date-display-button {
   display: inline-flex;
   max-width: 100%;
-  padding: 0 0 3px;
+  padding: 0;
   border: 0;
   border-bottom: 1px solid transparent;
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-soft);
   cursor: pointer;
-  font-size: 0.92rem;
-  line-height: 1.25;
+  font-size: 0.82rem;
+  line-height: 1.2;
   text-align: left;
 }
 
 .date-display-button:hover {
+  color: var(--ink);
   border-bottom-color: var(--line-strong);
 }
 
