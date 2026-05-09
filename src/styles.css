@@ -741,24 +741,33 @@ button.field-label:disabled {
   background: #ffffff;
 }
 
-.date-row {
+.date-label-row {
   display: inline-flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  gap: 10px;
   width: max-content;
   max-width: 100%;
 }
 
 .date-input {
-  width: 178px;
+  width: 150px;
   min-width: 0;
   flex: 0 0 auto;
-  padding: 11px 13px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
 }
 
 .date-weekday {
-  color: var(--ink-soft);
-  font-size: 0.92rem;
+  color: var(--ink-faint);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
