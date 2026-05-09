@@ -37,6 +37,24 @@ export class BillbookApp {
     }, 2600);
   }
 
+  formatWeekday(dateString) {
+    if (!dateString) {
+      return "";
+    }
+
+    const date = parseLocalDate(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString("en-US", { weekday: "long" });
+  }
+
+  syncDateWeekday() {
+    this.elements.dateWeekday.textContent = this.formatWeekday(this.elements.dateInput.value);
+  }
+
   buildFinanceErrorText(message) {
     return [
       "Finance Snapshot Error",
@@ -288,6 +306,7 @@ export class BillbookApp {
     this.state.externalChangeMessage = "";
 
     this.elements.dateInput.value = entry.date || "";
+    this.syncDateWeekday();
     this.elements.titleInput.value = entry.title || "";
     this.syncSectionInputs(entry.sections);
 
@@ -504,6 +523,7 @@ export class BillbookApp {
 
     if (target === this.elements.dateInput) {
       this.state.currentEntry.date = target.value;
+      this.syncDateWeekday();
       return;
     }
 
@@ -937,6 +957,7 @@ export class BillbookApp {
     if (!this.state.currentEntry.date) {
       this.state.currentEntry.date = createBlankDraft().date;
       this.elements.dateInput.value = this.state.currentEntry.date;
+      this.syncDateWeekday();
     }
 
     try {
@@ -1349,6 +1370,7 @@ export class BillbookApp {
     if (!this.state.currentEntry.date) {
       this.state.currentEntry.date = createBlankDraft().date;
       this.elements.dateInput.value = this.state.currentEntry.date;
+      this.syncDateWeekday();
     }
 
     const canReplace = await this.confirmGeneratedSectionRefresh(

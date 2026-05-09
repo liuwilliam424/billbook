@@ -7,5 +7,5 @@
 - [ ] Rework Touch ID / app security lock so it actually protects launch cleanly
 - [ ] Fix duplicate macOS Safe Storage password prompts on startup
 - [ ] Increase the app font size slightly
-- [ ] Days of the week
+- [x] Days of the week
 - [ ] Predictions reminders
