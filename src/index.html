@@ -121,13 +121,21 @@
         </section>
 
         <section id="editor-form" class="editor-form is-hidden">
-          <label class="field-group" for="entry-date">
-            <span class="date-label-row">
-              <span class="field-label">Date</span>
-              <span id="entry-weekday" class="date-weekday" aria-live="polite"></span>
+          <div class="field-group date-field">
+            <label class="field-label" for="entry-date">Date</label>
+            <span class="date-control">
+              <button id="entry-date-button" class="date-display-button" type="button">
+                Choose date
+              </button>
+              <input
+                id="entry-date"
+                class="date-native-input"
+                type="date"
+                aria-label="Entry date"
+                tabindex="-1"
+              />
             </span>
-            <input id="entry-date" class="text-input date-input" type="date" />
-          </label>
+          </div>
 
           <label class="field-group" for="entry-title">
             <span class="field-label">Title</span>

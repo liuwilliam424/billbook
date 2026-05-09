@@ -30,7 +30,7 @@ export function getElements() {
     emptyStateTitle: document.querySelector("#empty-state-title"),
     emptyStateBody: document.querySelector("#empty-state-body"),
     dateInput: document.querySelector("#entry-date"),
-    dateWeekday: document.querySelector("#entry-weekday"),
+    dateButton: document.querySelector("#entry-date-button"),
     titleInput: document.querySelector("#entry-title"),
     sectionInputs: Object.fromEntries(
       DAILY_PROMPTS.map(({ key }) => [key, document.querySelector(`#entry-${key}`)])

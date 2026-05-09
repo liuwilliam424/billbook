@@ -741,34 +741,50 @@ button.field-label:disabled {
   background: #ffffff;
 }
 
-.date-label-row {
+.date-field {
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.date-control {
+  position: relative;
   display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
-  width: max-content;
   max-width: 100%;
 }
 
-.date-input {
-  width: 150px;
-  min-width: 0;
-  flex: 0 0 auto;
-  padding: 8px 10px;
-  font-size: 0.95rem;
-  line-height: 1.2;
+.date-display-button {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 2px 0 3px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--editor-serif);
+  font-size: 1.1rem;
+  line-height: 1.25;
+  text-align: left;
 }
 
-.date-input::-webkit-calendar-picker-indicator {
-  width: 16px;
-  height: 16px;
-  margin-left: 2px;
+.date-display-button:hover {
+  border-bottom-color: var(--line-strong);
 }
 
-.date-weekday {
-  color: var(--ink-faint);
-  font-size: 0.74rem;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+.date-display-button:focus-visible {
+  outline: 1px solid var(--line-strong);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.date-native-input {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .title-input {

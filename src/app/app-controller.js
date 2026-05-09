@@ -37,7 +37,7 @@ export class BillbookApp {
     }, 2600);
   }
 
-  formatWeekday(dateString) {
+  formatDateDisplay(dateString) {
     if (!dateString) {
       return "";
     }
@@ -48,11 +48,38 @@ export class BillbookApp {
       return "";
     }
 
-    return date.toLocaleDateString("en-US", { weekday: "long" });
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    });
   }
 
-  syncDateWeekday() {
-    this.elements.dateWeekday.textContent = this.formatWeekday(this.elements.dateInput.value);
+  syncDateDisplay() {
+    const display = this.formatDateDisplay(this.elements.dateInput.value);
+    this.elements.dateButton.textContent = display || "Choose date";
+    this.elements.dateButton.title = display ? "Change entry date." : "Choose entry date.";
+  }
+
+  openDatePicker() {
+    const input = this.elements.dateInput;
+
+    if (!input) {
+      return;
+    }
+
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+        return;
+      }
+    } catch {
+      // Fall through to focus/click for older Chromium behavior.
+    }
+
+    input.focus();
+    input.click();
   }
 
   buildFinanceErrorText(message) {
@@ -306,7 +333,7 @@ export class BillbookApp {
     this.state.externalChangeMessage = "";
 
     this.elements.dateInput.value = entry.date || "";
-    this.syncDateWeekday();
+    this.syncDateDisplay();
     this.elements.titleInput.value = entry.title || "";
     this.syncSectionInputs(entry.sections);
 
@@ -523,7 +550,7 @@ export class BillbookApp {
 
     if (target === this.elements.dateInput) {
       this.state.currentEntry.date = target.value;
-      this.syncDateWeekday();
+      this.syncDateDisplay();
       return;
     }
 
@@ -957,7 +984,7 @@ export class BillbookApp {
     if (!this.state.currentEntry.date) {
       this.state.currentEntry.date = createBlankDraft().date;
       this.elements.dateInput.value = this.state.currentEntry.date;
-      this.syncDateWeekday();
+      this.syncDateDisplay();
     }
 
     try {
@@ -1370,7 +1397,7 @@ export class BillbookApp {
     if (!this.state.currentEntry.date) {
       this.state.currentEntry.date = createBlankDraft().date;
       this.elements.dateInput.value = this.state.currentEntry.date;
-      this.syncDateWeekday();
+      this.syncDateDisplay();
     }
 
     const canReplace = await this.confirmGeneratedSectionRefresh(
@@ -1533,6 +1560,7 @@ export class BillbookApp {
     this.elements.newEntryButton.addEventListener("click", () => this.handleNewEntry());
     this.elements.reloadEntryButton.addEventListener("click", () => this.handleReloadFromDisk());
     this.elements.keepMineButton.addEventListener("click", () => this.handleKeepMine());
+    this.elements.dateButton.addEventListener("click", () => this.openDatePicker());
     this.elements.dateInput.addEventListener("input", (event) => this.handleEditorInput(event));
     this.elements.titleInput.addEventListener("input", (event) => this.handleEditorInput(event));
 
