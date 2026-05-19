@@ -922,16 +922,19 @@ button.field-label:disabled {
   width: min(680px, calc(100vw - 32px));
 }
 
+.plaid-dialog-card,
 .oura-dialog-card {
   width: min(520px, calc(100vw - 32px));
 }
 
+.plaid-credentials-fields,
 .oura-credentials-fields {
   display: grid;
   gap: 14px;
   margin-top: 18px;
 }
 
+.plaid-input,
 .oura-input {
   padding: 11px 13px;
 }

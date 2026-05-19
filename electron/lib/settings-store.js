@@ -9,7 +9,7 @@ function createDefaultSettings() {
       spendingAccountIds: []
     },
     integrations: {
-      simplefinConnectedHint: false,
+      plaidConnectedHint: false,
       ouraConnectedHint: false,
       autoConnectOnStartup: true
     },
@@ -50,6 +50,7 @@ function normalizeSettings(settingsLike = {}) {
     integrations: {
       ...defaults.integrations,
       ...integrations,
+      plaidConnectedHint: Boolean(integrations.plaidConnectedHint),
       simplefinConnectedHint: Boolean(integrations.simplefinConnectedHint),
       ouraConnectedHint: Boolean(integrations.ouraConnectedHint),
       autoConnectOnStartup

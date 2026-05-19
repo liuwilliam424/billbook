@@ -87,7 +87,7 @@ export class BillbookApp {
       "Finance Snapshot Error",
       message || "Billbook could not generate the finance snapshot for this entry.",
       "",
-      "You can reconnect or reconfigure SimpleFIN from the sidebar menu, or replace this text manually."
+      "You can reconnect or reconfigure Plaid from the sidebar menu, or replace this text manually."
     ].join("\n");
   }
 
@@ -242,11 +242,15 @@ export class BillbookApp {
       const status = await this.gateway.getFinanceStatus();
       this.state.financeConnected = Boolean(status.connected);
       this.state.financeConfigured = Boolean(status.configured);
+      this.state.financeHasClientCredentials = Boolean(status.hasClientCredentials);
+      this.state.financeItemCount = Number(status.itemCount || 0);
       this.state.financeRequiresReconnect = Boolean(status.requiresReconnect);
       this.state.financeStatusError = status.statusMessage || "";
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeHasClientCredentials = false;
+      this.state.financeItemCount = 0;
       this.state.financeRequiresReconnect = false;
       this.state.financeStatusError = error.message || "Status unavailable";
 
@@ -280,6 +284,8 @@ export class BillbookApp {
   applyIntegrationStatuses({ finance = {}, oura = {} } = {}) {
     this.state.financeConnected = Boolean(finance.connected);
     this.state.financeConfigured = Boolean(finance.configured);
+    this.state.financeHasClientCredentials = Boolean(finance.hasClientCredentials);
+    this.state.financeItemCount = Number(finance.itemCount || 0);
     this.state.financeRequiresReconnect = Boolean(finance.requiresReconnect);
     this.state.financeStatusError = finance.statusMessage || "";
     this.state.ouraConnected = Boolean(oura.connected);
@@ -302,6 +308,8 @@ export class BillbookApp {
     } catch (error) {
       this.state.financeConnected = false;
       this.state.financeConfigured = false;
+      this.state.financeHasClientCredentials = false;
+      this.state.financeItemCount = 0;
       this.state.financeRequiresReconnect = false;
       this.state.financeStatusError = error.message || "Status unavailable";
       this.state.ouraConnected = false;
@@ -648,9 +656,53 @@ export class BillbookApp {
     }
 
     await this.showConfirmDialog({
-      title: "SimpleFIN message",
+      title: "Plaid message",
       body: warnings.join("\n"),
       actions: [{ id: "ok", label: "OK", variant: "primary" }]
+    });
+  }
+
+  async showPlaidCredentialsDialog() {
+    this.elements.plaidClientIdInput.value = "";
+    this.elements.plaidSecretInput.value = "";
+    this.elements.plaidEnvironmentInput.value = "development";
+
+    return new Promise((resolve) => {
+      const cleanup = () => {
+        this.elements.plaidCancelButton.removeEventListener("click", handleCancel);
+        this.elements.plaidSaveButton.removeEventListener("click", handleSave);
+        this.elements.plaidCredentialsDialog.removeEventListener("cancel", handleCancel);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        this.elements.plaidCredentialsDialog.close("cancel");
+        resolve(null);
+      };
+
+      const handleSave = () => {
+        const clientId = this.elements.plaidClientIdInput.value.trim();
+        const secret = this.elements.plaidSecretInput.value.trim();
+        const environment = this.elements.plaidEnvironmentInput.value;
+
+        if (!clientId || !secret) {
+          this.showToast("Enter both the Plaid client ID and secret");
+          return;
+        }
+
+        cleanup();
+        this.elements.plaidCredentialsDialog.close("save");
+        resolve({
+          clientId,
+          environment,
+          secret
+        });
+      };
+
+      this.elements.plaidCancelButton.addEventListener("click", handleCancel);
+      this.elements.plaidSaveButton.addEventListener("click", handleSave);
+      this.elements.plaidCredentialsDialog.addEventListener("cancel", handleCancel, { once: true });
+      this.elements.plaidCredentialsDialog.showModal();
     });
   }
 
@@ -802,7 +854,7 @@ export class BillbookApp {
     if (!this.state.financeConnected || !this.state.financeConfigured) {
       return this.buildFinanceErrorText(
         !this.state.financeConnected
-          ? this.state.financeStatusError || "SimpleFIN is not connected."
+          ? this.state.financeStatusError || "Plaid is not connected."
           : "Finance accounts are not configured."
       );
     }
@@ -824,7 +876,7 @@ export class BillbookApp {
         return this.buildFinanceErrorText(warnings.join(" "));
       }
 
-      return this.buildFinanceErrorText("SimpleFIN returned no finance data for this entry.");
+      return this.buildFinanceErrorText("Plaid returned no finance data for this entry.");
     } catch (error) {
       const message = error.message || "Finance snapshot unavailable";
       this.showToast(message);
@@ -1222,11 +1274,24 @@ export class BillbookApp {
     }
   }
 
-  async handleConnectSimplefin() {
+  async handleConnectPlaid() {
     this.closeSidebarMenu();
 
     try {
-      const result = await this.gateway.connectSimplefinFromFile();
+      const status = await this.gateway.getFinanceStatus();
+
+      if (!status?.hasClientCredentials) {
+        const credentials = await this.showPlaidCredentialsDialog();
+
+        if (!credentials) {
+          return;
+        }
+
+        await this.gateway.savePlaidCredentials(credentials);
+      }
+
+      this.showToast("Opening Plaid in your browser");
+      const result = await this.gateway.connectPlaid();
 
       if (result?.canceled) {
         return;
@@ -1236,7 +1301,7 @@ export class BillbookApp {
       await this.refreshFinanceStatus();
 
       if (!Array.isArray(result?.accounts) || !result.accounts.length) {
-        this.showToast("SimpleFIN connected");
+        this.showToast("Plaid connected");
         return;
       }
 
@@ -1248,18 +1313,31 @@ export class BillbookApp {
       if (financeConfig) {
         await this.gateway.saveFinanceConfig(financeConfig);
         await this.refreshFinanceStatus();
-        this.showToast("SimpleFIN connected");
+        this.showToast("Plaid connected");
         return;
       }
 
-      this.showToast("SimpleFIN connected");
+      this.showToast("Plaid connected");
     } catch (error) {
       await this.refreshFinanceStatus();
-      await this.showConfirmDialog({
-        title: "SimpleFIN unavailable",
-        body: error.message || "Billbook could not connect to SimpleFIN.",
-        actions: [{ id: "ok", label: "OK", variant: "primary" }]
+      const action = await this.showConfirmDialog({
+        title: "Plaid unavailable",
+        body: error.message || "Billbook could not connect to Plaid.",
+        actions: [
+          { id: "credentials", label: "Edit Credentials", variant: "secondary" },
+          { id: "ok", label: "OK", variant: "primary" }
+        ]
       });
+
+      if (action === "credentials") {
+        const credentials = await this.showPlaidCredentialsDialog();
+
+        if (credentials) {
+          await this.gateway.savePlaidCredentials(credentials);
+          await this.refreshFinanceStatus();
+          this.showToast("Plaid credentials saved");
+        }
+      }
     }
   }
 
@@ -1305,7 +1383,7 @@ export class BillbookApp {
       if (!Array.isArray(result?.accounts) || !result.accounts.length) {
         await this.showConfirmDialog({
           title: "No finance accounts",
-          body: "Billbook could not find any connected SimpleFIN accounts yet.",
+          body: "Billbook could not find any connected Plaid accounts yet.",
           actions: [{ id: "ok", label: "OK", variant: "primary" }]
         });
         return;
@@ -1373,7 +1451,7 @@ export class BillbookApp {
     const isOldFinanceSnapshot =
       sectionKey === "finances" && this.getSectionAgeDays(dateString) >= 30;
     const body = isOldFinanceSnapshot
-      ? "This will replace existing finance text. This entry is 30+ days old, and Chase or SimpleFIN may not return the same pending transactions anymore."
+      ? "This will replace existing finance text. This entry is 30+ days old, and Chase or Plaid may not return the same pending transactions anymore."
       : `This will replace the current ${label} text for this entry.`;
     const action = await this.showConfirmDialog({
       title: `Replace ${label}?`,
@@ -1543,7 +1621,7 @@ export class BillbookApp {
       event.stopPropagation();
       this.toggleSidebarMenu();
     });
-    this.elements.connectSimplefinButton.addEventListener("click", async () => this.handleConnectSimplefin());
+    this.elements.connectPlaidButton.addEventListener("click", async () => this.handleConnectPlaid());
     this.elements.connectOuraButton.addEventListener("click", async () => this.handleConnectOura());
     this.elements.configureFinanceButton.addEventListener("click", async () =>
       this.handleConfigureFinance()
@@ -1652,7 +1730,8 @@ export class BillbookApp {
       settings.finance?.netWorthAccountIds?.length || settings.finance?.spendingAccountIds?.length
     );
     this.state.financeConnected = Boolean(
-      settings.integrations?.simplefinConnectedHint || this.state.financeConfigured
+      settings.integrations?.plaidConnectedHint
+        || settings.integrations?.simplefinConnectedHint
     );
     this.state.ouraConnected = Boolean(settings.integrations?.ouraConnectedHint);
     this.state.autoConnectIntegrationsOnStartup =

@@ -39,8 +39,8 @@
         <div class="sidebar-footer no-drag">
           <div class="sidebar-menu-wrap">
             <div id="sidebar-menu" class="sidebar-menu is-hidden">
-              <button id="connect-simplefin-button" class="sidebar-menu-item" type="button">
-                Connect SimpleFIN
+              <button id="connect-plaid-button" class="sidebar-menu-item" type="button">
+                Connect Plaid
               </button>
               <button id="connect-oura-button" class="sidebar-menu-item" type="button">
                 Connect Oura
@@ -60,8 +60,8 @@
               <div class="sidebar-menu-status" aria-live="polite">
                 <p class="sidebar-menu-status-heading">Integrations</p>
                 <div class="sidebar-menu-status-row">
-                  <span class="sidebar-menu-status-name">SimpleFIN</span>
-                  <span id="simplefin-status" class="sidebar-menu-status-value">Not connected</span>
+                  <span class="sidebar-menu-status-name">Plaid</span>
+                  <span id="plaid-status" class="sidebar-menu-status-value">Not connected</span>
                 </div>
                 <div class="sidebar-menu-status-row">
                   <span class="sidebar-menu-status-name">Oura</span>
@@ -233,6 +233,47 @@
           </button>
           <button id="finance-save-button" class="button button-primary" type="button">
             Save Finance Setup
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="plaid-credentials-dialog" class="confirm-dialog plaid-dialog">
+      <form method="dialog" class="confirm-dialog-card plaid-dialog-card">
+        <p class="confirm-title">Plaid Credentials</p>
+        <p class="confirm-body">
+          Save your Plaid client ID, secret, and environment on this Mac. Billbook opens Plaid
+          Link in your browser and stores the resulting access token locally.
+        </p>
+        <div class="plaid-credentials-fields">
+          <label class="field-group" for="plaid-client-id">
+            <span class="field-label">Client ID</span>
+            <input id="plaid-client-id" class="text-input plaid-input" type="text" autocomplete="off" />
+          </label>
+          <label class="field-group" for="plaid-secret">
+            <span class="field-label">Secret</span>
+            <input
+              id="plaid-secret"
+              class="text-input plaid-input"
+              type="password"
+              autocomplete="off"
+            />
+          </label>
+          <label class="field-group" for="plaid-environment">
+            <span class="field-label">Environment</span>
+            <select id="plaid-environment" class="text-input plaid-input">
+              <option value="development" selected>Development</option>
+              <option value="sandbox">Sandbox</option>
+              <option value="production">Production</option>
+            </select>
+          </label>
+        </div>
+        <div class="confirm-actions plaid-dialog-actions">
+          <button id="plaid-cancel-button" class="button button-secondary" type="button">
+            Cancel
+          </button>
+          <button id="plaid-save-button" class="button button-primary" type="button">
+            Save and Connect
           </button>
         </div>
       </form>

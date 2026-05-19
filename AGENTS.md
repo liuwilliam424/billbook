@@ -134,6 +134,13 @@ That file currently stores the selected `journalDirectory`.
 
 Unsaved drafts are not durable unless explicitly implemented later.
 
+Finance and sleep integration secrets are stored through Electron safe storage in the app support directory, not in journal Markdown files. The finance integration is Plaid-based:
+
+- Plaid Link opens in the user's browser from a temporary localhost page
+- Main-process finance logic lives in `electron/lib/finance-service.js`
+- Plaid REST calls live in `electron/lib/plaid-client.js`
+- The renderer should only reach Plaid through preload/gateway IPC methods
+
 ## Finder / Local Integration
 
 The folder name in the sidebar opens the selected journal folder in Finder.

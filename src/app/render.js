@@ -25,9 +25,11 @@ function renderSidebarMenu(state, elements) {
   const canCreateBackup = Boolean(state.journalDirectory) && !state.journalDirectoryMissing;
   elements.sidebarMenu.classList.toggle("is-hidden", !state.isSidebarMenuOpen);
   elements.sidebarMenuButton.setAttribute("aria-expanded", state.isSidebarMenuOpen ? "true" : "false");
-  elements.connectSimplefinButton.textContent = state.financeConnected
-    ? "Reconnect SimpleFIN"
-    : "Connect SimpleFIN";
+  elements.connectPlaidButton.textContent = state.financeConnected
+    ? "Reconnect Plaid"
+    : state.financeHasClientCredentials
+      ? "Open Plaid Link"
+      : "Connect Plaid";
   elements.connectOuraButton.textContent = state.ouraConnected
     ? "Reconnect Oura"
     : state.ouraHasClientCredentials
@@ -48,16 +50,16 @@ function renderSidebarMenu(state, elements) {
 }
 
 function renderIntegrationStatus(state, elements) {
-  const simplefinText = getSimplefinStatusText(state);
+  const plaidText = getPlaidStatusText(state);
   const ouraText = getOuraStatusText(state);
 
-  elements.simplefinStatus.textContent = simplefinText;
+  elements.plaidStatus.textContent = plaidText;
   elements.ouraStatus.textContent = ouraText;
-  elements.simplefinStatus.classList.toggle("is-error", Boolean(state.financeStatusError));
+  elements.plaidStatus.classList.toggle("is-error", Boolean(state.financeStatusError));
   elements.ouraStatus.classList.toggle("is-error", Boolean(state.ouraStatusError));
 }
 
-function getSimplefinStatusText(state) {
+function getPlaidStatusText(state) {
   if (state.financeStatusError) {
     return state.financeStatusError;
   }
@@ -72,6 +74,10 @@ function getSimplefinStatusText(state) {
 
   if (state.financeConnected) {
     return "Connected • choose accounts";
+  }
+
+  if (state.financeHasClientCredentials) {
+    return "Credentials saved";
   }
 
   if (state.financeConfigured) {

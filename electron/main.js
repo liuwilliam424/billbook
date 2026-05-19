@@ -34,10 +34,9 @@ let touchIDUnlockedThisSession = false;
 const settingsStore = createSettingsStore(app);
 const secureStore = createSecureStore(app, () => electron.safeStorage);
 const financeService = createFinanceService({
-  app,
-  dialog,
   settingsStore,
-  secureStore
+  secureStore,
+  shell
 });
 const ouraService = createOuraService({
   settingsStore,
@@ -470,7 +469,11 @@ function registerFinanceHandlers() {
 
   ipcMain.handle("finance:auto-connect", async () => financeService.autoConnect());
 
-  ipcMain.handle("finance:connect-from-file", async () => financeService.connectFromFile());
+  ipcMain.handle("finance:save-plaid-credentials", async (_event, credentials) =>
+    financeService.savePlaidCredentials(credentials)
+  );
+
+  ipcMain.handle("finance:connect-plaid", async () => financeService.connectPlaid());
 
   ipcMain.handle("finance:list-accounts", async () => financeService.listAccounts());
 

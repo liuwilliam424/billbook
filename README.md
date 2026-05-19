@@ -30,9 +30,10 @@ flowchart LR
   D --> E["Journal Store (electron/lib/journal-store.js)"]
   D --> F["Settings Store (electron/lib/settings-store.js)"]
   D --> H["Finance Service (electron/lib/finance-service.js)"]
+  H --> L["Plaid Client (electron/lib/plaid-client.js)"]
   D --> J["Oura Service (electron/lib/oura-service.js)"]
   E --> G["Markdown files on disk"]
-  H --> I["SimpleFIN Bridge"]
+  H --> I["Plaid Link + API"]
   J --> K["Oura Cloud API"]
 ```
 
@@ -47,7 +48,9 @@ flowchart LR
 - `electron/lib/settings-store.js`
   Stores Billbook app settings like the selected journal directory.
 - `electron/lib/finance-service.js`
-  Claims SimpleFIN setup tokens, fetches finance data, and builds the `Finances` snapshot text for new entries.
+  Runs Plaid Link, stores Plaid Items securely, fetches account and transaction data, and builds the `Finances` snapshot text for new entries.
+- `electron/lib/plaid-client.js`
+  Small REST client for Plaid Link tokens, public token exchange, accounts, and transactions.
 - `electron/lib/oura-service.js`
   Runs the Oura OAuth flow, refreshes Oura tokens, and builds the `Sleep` snapshot text for new entries.
 - `src/renderer.js`
@@ -206,3 +209,11 @@ npm run setup:mac
 - local files are the source of truth
 - app is ad-hoc signed, not notarized
 - still uses the default Electron icon
+
+## Plaid Finance Setup
+
+Billbook uses Plaid for finance snapshots. The app stores your Plaid client ID, secret, environment, and access tokens locally through Electron safe storage; they are not written to journal Markdown files.
+
+Then open Billbook, use the bottom-left menu, choose `Connect Plaid`, enter your Plaid credentials, and finish Link in the browser. After linking, choose which accounts count toward net worth and which accounts count toward daily spending.
+
+Billbook currently uses Plaid's cached account balances and date-specific pending transactions. The finance text is generated into the Markdown entry once, then remains editable like the other journal sections.

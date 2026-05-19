@@ -23,7 +23,9 @@ The renderer should not do any of those things directly.
 - `lib/journal-store.js`
   Handles Markdown parsing, file layout, and save logic.
 - `lib/finance-service.js`
-  Owns the SimpleFIN integration and generates one-time finance snapshots for new entries.
+  Owns the Plaid Link flow, secure Plaid Items, and one-time finance snapshots for new entries.
+- `lib/plaid-client.js`
+  Small REST client for the Plaid API endpoints Billbook uses.
 - `lib/oura-service.js`
   Owns the Oura OAuth flow and generates one-time sleep snapshots for new entries.
 - `lib/secure-store.js`
@@ -67,7 +69,8 @@ That work belongs in `lib/journal-store.js`.
 - `journal.readEntry`
 - `journal.saveEntry`
 - `finance.getStatus`
-- `finance.connectFromFile`
+- `finance.savePlaidCredentials`
+- `finance.connectPlaid`
 - `finance.listAccounts`
 - `finance.saveConfig`
 - `finance.buildEntrySection`

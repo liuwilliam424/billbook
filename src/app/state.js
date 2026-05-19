@@ -16,6 +16,8 @@ export function createInitialState() {
     folderToastTimeoutId: null,
     financeConnected: false,
     financeConfigured: false,
+    financeHasClientCredentials: false,
+    financeItemCount: 0,
     financeRequiresReconnect: false,
     financeStatusError: "",
     ouraConnected: false,

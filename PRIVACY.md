@@ -6,7 +6,7 @@ Billbook is a local-first journaling application.
 
 Billbook stores journal entries as Markdown files in a folder chosen by the user.
 
-Billbook may connect to third-party services such as SimpleFIN and Oura when the user explicitly enables those integrations.
+Billbook may connect to third-party services such as Plaid and Oura when the user explicitly enables those integrations.
 
 For enabled integrations, Billbook stores connection credentials locally on the user's machine using operating-system protected storage where available.
 

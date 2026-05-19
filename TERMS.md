@@ -8,7 +8,7 @@ You are responsible for how you use Billbook, including how you store, back up, 
 
 ## Third-Party Services
 
-Billbook may connect to external services such as SimpleFIN and Oura at the user's request. Those services are governed by their own terms and policies.
+Billbook may connect to external services such as Plaid and Oura at the user's request. Those services are governed by their own terms and policies.
 
 ## No Warranty
 
