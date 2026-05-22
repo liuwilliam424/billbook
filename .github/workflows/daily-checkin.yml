@@ -1,0 +1,61 @@
+name: Daily Green Square
+
+on:
+  schedule:
+    # GitHub schedules are UTC. These two runs cover 10:10 PM New York time
+    # across daylight saving time and standard time. The script is idempotent,
+    # so the extra run exits without committing.
+    - cron: "10 2 * * *"
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-green-square-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-in:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make daily check-in
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "William Liu"
+          git config user.email "90328036+liuwilliam424@users.noreply.github.com"
+
+          git pull --rebase origin main
+
+          today="$(TZ=America/New_York date +%F)"
+          checkin_file="devlog/${today}.md"
+
+          if [[ -f "${checkin_file}" ]]; then
+            echo "Daily check-in already exists for ${today}."
+            exit 0
+          fi
+
+          mkdir -p devlog
+          cat > "${checkin_file}" <<EOF
+          # ${today}
+
+          Automated daily check-in.
+          EOF
+
+          offset="$(TZ=America/New_York date +%z)"
+          offset_with_colon="${offset:0:3}:${offset:3:2}"
+          export GIT_AUTHOR_DATE="${today}T22:10:00${offset_with_colon}"
+          export GIT_COMMITTER_DATE="${GIT_AUTHOR_DATE}"
+
+          git add "${checkin_file}"
+          git commit -m "Daily check-in ${today}"
+          git push origin HEAD:main
