@@ -2,11 +2,8 @@ name: Daily Green Square
 
 on:
   schedule:
-    # GitHub schedules are UTC. These two runs cover 10:10 PM New York time
-    # across daylight saving time and standard time. The script is idempotent,
-    # so the extra run exits without committing.
-    - cron: "10 2 * * *"
-    - cron: "10 3 * * *"
+    - cron: "10 22 * * *"
+      timezone: "America/New_York"
   workflow_dispatch:
 
 permissions:
