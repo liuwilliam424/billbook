@@ -6,7 +6,7 @@ Billbook is a local-first journaling application.
 
 Billbook stores journal entries as Markdown files in a folder chosen by the user.
 
-Billbook may connect to third-party services such as Plaid and Oura when the user explicitly enables those integrations.
+Billbook may connect to third-party services such as Oura when the user explicitly enables those integrations.
 
 For enabled integrations, Billbook stores connection credentials locally on the user's machine using operating-system protected storage where available.
 
@@ -14,7 +14,7 @@ Billbook does not operate a hosted backend service for syncing or storing journa
 
 ## Third-Party Data
 
-When a user enables a finance or sleep integration, Billbook may retrieve the limited account, transaction, or wellness data needed to prepopulate sections of a journal entry.
+When a user enables a sleep integration, Billbook may retrieve the limited wellness data needed to prepopulate sections of a journal entry.
 
 That data is written into the user's local journal files only when the user creates or edits entries.
 

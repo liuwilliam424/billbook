@@ -25,17 +25,11 @@ function renderSidebarMenu(state, elements) {
   const canCreateBackup = Boolean(state.journalDirectory) && !state.journalDirectoryMissing;
   elements.sidebarMenu.classList.toggle("is-hidden", !state.isSidebarMenuOpen);
   elements.sidebarMenuButton.setAttribute("aria-expanded", state.isSidebarMenuOpen ? "true" : "false");
-  elements.connectPlaidButton.textContent = state.financeConnected
-    ? "Reconnect Plaid"
-    : state.financeHasClientCredentials
-      ? "Open Plaid Link"
-      : "Connect Plaid";
   elements.connectOuraButton.textContent = state.ouraConnected
     ? "Reconnect Oura"
     : state.ouraHasClientCredentials
       ? "Authorize Oura"
       : "Connect Oura";
-  elements.configureFinanceButton.disabled = !state.financeConnected;
   elements.toggleAutoConnectButton.textContent = state.autoConnectIntegrationsOnStartup
     ? "Disable Startup Auto-Connect"
     : "Enable Startup Auto-Connect";
@@ -50,41 +44,10 @@ function renderSidebarMenu(state, elements) {
 }
 
 function renderIntegrationStatus(state, elements) {
-  const plaidText = getPlaidStatusText(state);
   const ouraText = getOuraStatusText(state);
 
-  elements.plaidStatus.textContent = plaidText;
   elements.ouraStatus.textContent = ouraText;
-  elements.plaidStatus.classList.toggle("is-error", Boolean(state.financeStatusError));
   elements.ouraStatus.classList.toggle("is-error", Boolean(state.ouraStatusError));
-}
-
-function getPlaidStatusText(state) {
-  if (state.financeStatusError) {
-    return state.financeStatusError;
-  }
-
-  if (state.financeRequiresReconnect) {
-    return "Re-login required";
-  }
-
-  if (state.financeConnected && state.financeConfigured) {
-    return "Connected • accounts set";
-  }
-
-  if (state.financeConnected) {
-    return "Connected • choose accounts";
-  }
-
-  if (state.financeHasClientCredentials) {
-    return "Credentials saved";
-  }
-
-  if (state.financeConfigured) {
-    return "Configured • reconnect needed";
-  }
-
-  return "Not connected";
 }
 
 function getOuraStatusText(state) {

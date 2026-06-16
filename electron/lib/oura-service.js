@@ -34,7 +34,25 @@ function getTimeoutSignal() {
 function createOuraService({ settingsStore, secureStore, shell }) {
   async function loadSecrets() {
     const secrets = await secureStore.load();
-    return secrets && typeof secrets === "object" ? secrets : {};
+    const source = secrets && typeof secrets === "object" ? secrets : {};
+    const allowedKeys = [
+      "ouraClientId",
+      "ouraClientSecret",
+      "ouraAccessToken",
+      "ouraRefreshToken",
+      "ouraTokenExpiresAt"
+    ];
+    const normalized = Object.fromEntries(
+      allowedKeys
+        .filter((key) => Object.prototype.hasOwnProperty.call(source, key))
+        .map((key) => [key, source[key]])
+    );
+
+    if (Object.keys(normalized).length !== Object.keys(source).length) {
+      await secureStore.save(normalized);
+    }
+
+    return normalized;
   }
 
   async function saveSecrets(secrets) {

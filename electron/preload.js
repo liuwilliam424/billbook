@@ -15,15 +15,6 @@ contextBridge.exposeInMainWorld("journalApp", {
     createBackup: () => ipcRenderer.invoke("journal:create-backup"),
     saveEntry: (entry) => ipcRenderer.invoke("journal:save-entry", entry)
   },
-  finance: {
-    getStatus: () => ipcRenderer.invoke("finance:get-status"),
-    autoConnect: () => ipcRenderer.invoke("finance:auto-connect"),
-    savePlaidCredentials: (credentials) => ipcRenderer.invoke("finance:save-plaid-credentials", credentials),
-    connectPlaid: () => ipcRenderer.invoke("finance:connect-plaid"),
-    listAccounts: () => ipcRenderer.invoke("finance:list-accounts"),
-    saveConfig: (financeConfig) => ipcRenderer.invoke("finance:save-config", financeConfig),
-    buildEntrySection: (dateString) => ipcRenderer.invoke("finance:build-entry-section", dateString)
-  },
   oura: {
     getStatus: () => ipcRenderer.invoke("oura:get-status"),
     autoConnect: () => ipcRenderer.invoke("oura:auto-connect"),

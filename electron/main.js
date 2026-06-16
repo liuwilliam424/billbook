@@ -10,7 +10,6 @@ const electron = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const fsp = require("node:fs/promises");
-const { createFinanceService } = require("./lib/finance-service");
 const { createJournalBackup } = require("./lib/journal-backup");
 const { createOuraService } = require("./lib/oura-service");
 const { createSecureStore } = require("./lib/secure-store");
@@ -33,11 +32,6 @@ let touchIDUnlockPromise = null;
 let touchIDUnlockedThisSession = false;
 const settingsStore = createSettingsStore(app);
 const secureStore = createSecureStore(app, () => electron.safeStorage);
-const financeService = createFinanceService({
-  settingsStore,
-  secureStore,
-  shell
-});
 const ouraService = createOuraService({
   settingsStore,
   secureStore,
@@ -464,28 +458,6 @@ function registerJournalHandlers() {
   });
 }
 
-function registerFinanceHandlers() {
-  ipcMain.handle("finance:get-status", async () => financeService.getStatus());
-
-  ipcMain.handle("finance:auto-connect", async () => financeService.autoConnect());
-
-  ipcMain.handle("finance:save-plaid-credentials", async (_event, credentials) =>
-    financeService.savePlaidCredentials(credentials)
-  );
-
-  ipcMain.handle("finance:connect-plaid", async () => financeService.connectPlaid());
-
-  ipcMain.handle("finance:list-accounts", async () => financeService.listAccounts());
-
-  ipcMain.handle("finance:save-config", async (_event, financeConfig) =>
-    financeService.saveFinanceConfig(financeConfig)
-  );
-
-  ipcMain.handle("finance:build-entry-section", async (_event, dateString) =>
-    financeService.buildFinanceSnapshot(dateString)
-  );
-}
-
 function registerOuraHandlers() {
   ipcMain.handle("oura:get-status", async () => ouraService.getStatus());
 
@@ -506,15 +478,11 @@ function registerAppHandlers() {
   ipcMain.handle("app:get-integration-statuses", async (_event, options = {}) => {
     const autoConnect = Boolean(options?.autoConnect);
     const startup = Boolean(options?.startup);
-    const finance = autoConnect
-      ? await financeService.autoConnect()
-      : await financeService.getStatus();
     const oura = autoConnect
       ? await ouraService.autoConnect({ startup })
       : await ouraService.getStatus();
 
     return {
-      finance,
       oura
     };
   });
@@ -543,7 +511,6 @@ function registerAppHandlers() {
 function registerIpcHandlers() {
   registerSettingsHandlers();
   registerJournalHandlers();
-  registerFinanceHandlers();
   registerOuraHandlers();
   registerAppHandlers();
 }

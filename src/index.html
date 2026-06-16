@@ -39,14 +39,8 @@
         <div class="sidebar-footer no-drag">
           <div class="sidebar-menu-wrap">
             <div id="sidebar-menu" class="sidebar-menu is-hidden">
-              <button id="connect-plaid-button" class="sidebar-menu-item" type="button">
-                Connect Plaid
-              </button>
               <button id="connect-oura-button" class="sidebar-menu-item" type="button">
                 Connect Oura
-              </button>
-              <button id="configure-finance-button" class="sidebar-menu-item" type="button">
-                Configure Finance Accounts
               </button>
               <button id="toggle-auto-connect-button" class="sidebar-menu-item" type="button">
                 Disable Startup Auto-Connect
@@ -59,10 +53,6 @@
               </button>
               <div class="sidebar-menu-status" aria-live="polite">
                 <p class="sidebar-menu-status-heading">Integrations</p>
-                <div class="sidebar-menu-status-row">
-                  <span class="sidebar-menu-status-name">Plaid</span>
-                  <span id="plaid-status" class="sidebar-menu-status-value">Not connected</span>
-                </div>
                 <div class="sidebar-menu-status-row">
                   <span class="sidebar-menu-status-name">Oura</span>
                   <span id="oura-status" class="sidebar-menu-status-value">Not connected</span>
@@ -174,21 +164,10 @@
               <textarea id="entry-happiness" class="section-input" spellcheck="true"></textarea>
             </label>
 
-            <div class="field-group section-group">
-              <button
-                class="field-label section-refresh-label"
-                type="button"
-                data-section-key="finances"
-                data-label="Finances"
-                title="Refresh finances for this entry date."
-              >
-                Finances
-              </button>
-              <div id="entry-finances-loading" class="section-loading is-hidden" aria-live="polite">
-                ...
-              </div>
+            <label class="field-group section-group" for="entry-finances">
+              <span class="field-label">Finances</span>
               <textarea id="entry-finances" class="section-input" spellcheck="true"></textarea>
-            </div>
+            </label>
 
             <div class="field-group section-group">
               <button
@@ -217,65 +196,6 @@
           Save your current work before continuing?
         </p>
         <div id="confirm-actions" class="confirm-actions"></div>
-      </form>
-    </dialog>
-
-    <dialog id="finance-dialog" class="confirm-dialog finance-dialog">
-      <form method="dialog" class="confirm-dialog-card finance-dialog-card">
-        <p class="confirm-title">Finance Accounts</p>
-        <p class="confirm-body">
-          Choose which connected accounts Billbook uses for net worth snapshots and daily spending.
-        </p>
-        <div id="finance-account-list" class="finance-account-list"></div>
-        <div class="confirm-actions finance-dialog-actions">
-          <button id="finance-cancel-button" class="button button-secondary" type="button">
-            Cancel
-          </button>
-          <button id="finance-save-button" class="button button-primary" type="button">
-            Save Finance Setup
-          </button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="plaid-credentials-dialog" class="confirm-dialog plaid-dialog">
-      <form method="dialog" class="confirm-dialog-card plaid-dialog-card">
-        <p class="confirm-title">Plaid Credentials</p>
-        <p class="confirm-body">
-          Save your Plaid client ID, secret, and environment on this Mac. Billbook opens Plaid
-          Link in your browser and stores the resulting access token locally.
-        </p>
-        <div class="plaid-credentials-fields">
-          <label class="field-group" for="plaid-client-id">
-            <span class="field-label">Client ID</span>
-            <input id="plaid-client-id" class="text-input plaid-input" type="text" autocomplete="off" />
-          </label>
-          <label class="field-group" for="plaid-secret">
-            <span class="field-label">Secret</span>
-            <input
-              id="plaid-secret"
-              class="text-input plaid-input"
-              type="password"
-              autocomplete="off"
-            />
-          </label>
-          <label class="field-group" for="plaid-environment">
-            <span class="field-label">Environment</span>
-            <select id="plaid-environment" class="text-input plaid-input">
-              <option value="development" selected>Development</option>
-              <option value="sandbox">Sandbox</option>
-              <option value="production">Production</option>
-            </select>
-          </label>
-        </div>
-        <div class="confirm-actions plaid-dialog-actions">
-          <button id="plaid-cancel-button" class="button button-secondary" type="button">
-            Cancel
-          </button>
-          <button id="plaid-save-button" class="button button-primary" type="button">
-            Save and Connect
-          </button>
-        </div>
       </form>
     </dialog>
 

@@ -6,7 +6,6 @@ import {
   cloneEntry,
   createBlankDraft,
   getBasename,
-  getCalendarMonthKey,
   parseLocalDate,
   getSelectedMonthKey,
   getSelectedWeekKey,
@@ -82,184 +81,8 @@ export class BillbookApp {
     input.click();
   }
 
-  buildFinanceErrorText(message) {
-    return [
-      "Finance Snapshot Error",
-      message || "Billbook could not generate the finance snapshot for this entry.",
-      "",
-      "You can reconnect or reconfigure Plaid from the sidebar menu, or replace this text manually."
-    ].join("\n");
-  }
-
   buildSleepUnavailableText() {
     return "Duration: unavailable";
-  }
-
-  extractNetWorthBlock(financeText) {
-    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
-
-    if (!normalized) {
-      return null;
-    }
-
-    const match = normalized.match(
-      /^(?:###\s+)?Net Worth\s*\n([^\n]+)\n(As of [^\n]+)(?:\n|$)/im
-    );
-
-    if (!match) {
-      return null;
-    }
-
-    return {
-      block: `Net Worth\n${match[1].trim()}\n${match[2].trim()}`,
-      amountLine: match[1].trim(),
-      asOfLine: match[2].trim()
-    };
-  }
-
-  replaceNetWorthBlock(financeText, replacementBlock) {
-    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
-
-    if (!normalized || !replacementBlock) {
-      return normalized;
-    }
-
-    return normalized.replace(
-      /^(?:###\s+)?Net Worth\s*\n[^\n]+\nAs of [^\n]+/im,
-      replacementBlock.trim()
-    );
-  }
-
-  parseMoneyDisplay(value) {
-    const raw = String(value || "").trim();
-    const match = raw.match(/-?\d[\d,]*(?:\.\d+)?/);
-
-    if (!match) {
-      return null;
-    }
-
-    const amount = Number(match[0].replace(/,/g, ""));
-
-    if (!Number.isFinite(amount)) {
-      return null;
-    }
-
-    const beforeAmount = raw.slice(0, match.index).trim();
-    const afterAmount = raw.slice(match.index + match[0].length).trim();
-    const trailingCurrency = afterAmount.match(/^[A-Z]{3}\b/);
-
-    return {
-      amount,
-      currencyToken: beforeAmount || trailingCurrency?.[0] || ""
-    };
-  }
-
-  formatSpendingImpact(total, netWorthTotal) {
-    if (!Number.isFinite(total) || !Number.isFinite(netWorthTotal) || netWorthTotal <= 0) {
-      return "";
-    }
-
-    const percent = (total / netWorthTotal) * 100;
-    return `${percent.toFixed(2)}% of net worth`;
-  }
-
-  applySpendingImpact(financeText) {
-    const normalized = String(financeText || "").replace(/\r\n/g, "\n").trim();
-
-    if (!normalized || /Finance Snapshot Error/i.test(normalized)) {
-      return normalized;
-    }
-
-    const netWorthBlock = this.extractNetWorthBlock(normalized);
-    const netWorth = this.parseMoneyDisplay(netWorthBlock?.amountLine);
-
-    if (!netWorth || netWorth.amount <= 0) {
-      return normalized;
-    }
-
-    const blocks = normalized.split(/\n{2,}/);
-    const updatedBlocks = blocks.map((block) => {
-      if (/^(?:###\s+)?Net Worth\s*$/im.test(block.split("\n")[0] || "")) {
-        return block.trim();
-      }
-
-      const lines = block
-        .split("\n")
-        .filter((line) => !/^Impact:\s*/i.test(line.trim()));
-      const totalLine = lines.find((line) => /^Total:\s*/i.test(line.trim()));
-
-      if (!totalLine) {
-        return lines.join("\n").trim();
-      }
-
-      const total = this.parseMoneyDisplay(totalLine.replace(/^Total:\s*/i, ""));
-
-      if (!total || total.amount <= 0) {
-        return lines.join("\n").trim();
-      }
-
-      const bothCurrenciesVisible = Boolean(netWorth.currencyToken && total.currencyToken);
-
-      if (bothCurrenciesVisible && netWorth.currencyToken !== total.currencyToken) {
-        return lines.join("\n").trim();
-      }
-
-      const impact = this.formatSpendingImpact(total.amount, netWorth.amount);
-      return [...lines, `Impact: ${impact}`].join("\n").trim();
-    });
-
-    return updatedBlocks.join("\n\n");
-  }
-
-  async findMonthlyNetWorthSnapshot(dateString) {
-    const monthKey = getCalendarMonthKey(dateString);
-
-    if (!monthKey) {
-      return null;
-    }
-
-    const monthEntries = this.state.entries
-      .filter((entry) => entry?.filePath && getCalendarMonthKey(entry.date) === monthKey)
-      .sort((left, right) => {
-        if (left.date !== right.date) {
-          return left.date.localeCompare(right.date);
-        }
-
-        return left.createdAt.localeCompare(right.createdAt);
-      });
-
-    for (const monthEntry of monthEntries) {
-      if (monthEntry?.netWorthSnapshot?.block) {
-        return monthEntry.netWorthSnapshot;
-      }
-    }
-
-    return null;
-  }
-
-  async refreshFinanceStatus({ showErrors = false } = {}) {
-    try {
-      const status = await this.gateway.getFinanceStatus();
-      this.state.financeConnected = Boolean(status.connected);
-      this.state.financeConfigured = Boolean(status.configured);
-      this.state.financeHasClientCredentials = Boolean(status.hasClientCredentials);
-      this.state.financeItemCount = Number(status.itemCount || 0);
-      this.state.financeRequiresReconnect = Boolean(status.requiresReconnect);
-      this.state.financeStatusError = status.statusMessage || "";
-    } catch (error) {
-      this.state.financeConnected = false;
-      this.state.financeConfigured = false;
-      this.state.financeHasClientCredentials = false;
-      this.state.financeItemCount = 0;
-      this.state.financeRequiresReconnect = false;
-      this.state.financeStatusError = error.message || "Status unavailable";
-
-      if (showErrors) {
-        this.showToast(this.state.financeStatusError);
-      }
-    }
-
-    renderChrome(this.state, this.elements);
   }
 
   async refreshOuraStatus({ showErrors = false } = {}) {
@@ -281,13 +104,7 @@ export class BillbookApp {
     renderChrome(this.state, this.elements);
   }
 
-  applyIntegrationStatuses({ finance = {}, oura = {} } = {}) {
-    this.state.financeConnected = Boolean(finance.connected);
-    this.state.financeConfigured = Boolean(finance.configured);
-    this.state.financeHasClientCredentials = Boolean(finance.hasClientCredentials);
-    this.state.financeItemCount = Number(finance.itemCount || 0);
-    this.state.financeRequiresReconnect = Boolean(finance.requiresReconnect);
-    this.state.financeStatusError = finance.statusMessage || "";
+  applyIntegrationStatuses({ oura = {} } = {}) {
     this.state.ouraConnected = Boolean(oura.connected);
     this.state.ouraHasClientCredentials = Boolean(oura.hasClientCredentials);
     this.state.ouraStatusError = oura.error || "";
@@ -298,20 +115,10 @@ export class BillbookApp {
       const statuses = await this.gateway.getIntegrationStatuses({ autoConnect, startup });
       this.applyIntegrationStatuses(statuses);
 
-      if (showErrors && statuses?.finance?.statusMessage) {
-        this.showToast(statuses.finance.statusMessage);
-      }
-
       if (showErrors && statuses?.oura?.error) {
         this.showToast(statuses.oura.error);
       }
     } catch (error) {
-      this.state.financeConnected = false;
-      this.state.financeConfigured = false;
-      this.state.financeHasClientCredentials = false;
-      this.state.financeItemCount = 0;
-      this.state.financeRequiresReconnect = false;
-      this.state.financeStatusError = error.message || "Status unavailable";
       this.state.ouraConnected = false;
       this.state.ouraHasClientCredentials = false;
       this.state.ouraStatusError = error.message || "Status unavailable";
@@ -396,11 +203,6 @@ export class BillbookApp {
   }
 
   async buildGeneratedSectionForDate(key, dateString) {
-    if (key === "finances") {
-      const financeText = await this.buildFinanceSectionForDate(dateString);
-      return this.applyMonthlyNetWorthSnapshot(financeText, dateString);
-    }
-
     if (key === "sleep") {
       return this.buildSleepSectionForDate(dateString);
     }
@@ -409,10 +211,6 @@ export class BillbookApp {
   }
 
   getGeneratedSectionFallback(key, error) {
-    if (key === "finances") {
-      return this.buildFinanceErrorText(error?.message || "Finance snapshot unavailable");
-    }
-
     if (key === "sleep") {
       return this.buildSleepUnavailableText();
     }
@@ -421,12 +219,12 @@ export class BillbookApp {
   }
 
   startGeneratedSectionLoad(key, dateString, { showToast = false } = {}) {
-    if (!["finances", "sleep"].includes(key) || this.state.loadingSections.has(key)) {
+    if (key !== "sleep" || this.state.loadingSections.has(key)) {
       return null;
     }
 
     const token = this.sectionLoadToken;
-    const label = key === "finances" ? "Finances" : "Sleep";
+    const label = "Sleep";
 
     this.setSectionLoading(key, true);
 
@@ -455,7 +253,6 @@ export class BillbookApp {
   }
 
   startGeneratedSectionLoads(dateString) {
-    this.startGeneratedSectionLoad("finances", dateString);
     this.startGeneratedSectionLoad("sleep", dateString);
   }
 
@@ -650,62 +447,6 @@ export class BillbookApp {
     });
   }
 
-  async showFinanceWarnings(warnings = []) {
-    if (!Array.isArray(warnings) || !warnings.length) {
-      return;
-    }
-
-    await this.showConfirmDialog({
-      title: "Plaid message",
-      body: warnings.join("\n"),
-      actions: [{ id: "ok", label: "OK", variant: "primary" }]
-    });
-  }
-
-  async showPlaidCredentialsDialog() {
-    this.elements.plaidClientIdInput.value = "";
-    this.elements.plaidSecretInput.value = "";
-    this.elements.plaidEnvironmentInput.value = "development";
-
-    return new Promise((resolve) => {
-      const cleanup = () => {
-        this.elements.plaidCancelButton.removeEventListener("click", handleCancel);
-        this.elements.plaidSaveButton.removeEventListener("click", handleSave);
-        this.elements.plaidCredentialsDialog.removeEventListener("cancel", handleCancel);
-      };
-
-      const handleCancel = () => {
-        cleanup();
-        this.elements.plaidCredentialsDialog.close("cancel");
-        resolve(null);
-      };
-
-      const handleSave = () => {
-        const clientId = this.elements.plaidClientIdInput.value.trim();
-        const secret = this.elements.plaidSecretInput.value.trim();
-        const environment = this.elements.plaidEnvironmentInput.value;
-
-        if (!clientId || !secret) {
-          this.showToast("Enter both the Plaid client ID and secret");
-          return;
-        }
-
-        cleanup();
-        this.elements.plaidCredentialsDialog.close("save");
-        resolve({
-          clientId,
-          environment,
-          secret
-        });
-      };
-
-      this.elements.plaidCancelButton.addEventListener("click", handleCancel);
-      this.elements.plaidSaveButton.addEventListener("click", handleSave);
-      this.elements.plaidCredentialsDialog.addEventListener("cancel", handleCancel, { once: true });
-      this.elements.plaidCredentialsDialog.showModal();
-    });
-  }
-
   async showOuraCredentialsDialog() {
     this.elements.ouraClientIdInput.value = "";
     this.elements.ouraClientSecretInput.value = "";
@@ -747,143 +488,6 @@ export class BillbookApp {
     });
   }
 
-  buildFinanceConfigFromDialog() {
-    const netWorthAccountIds = [];
-    const spendingAccountIds = [];
-
-    for (const checkbox of this.elements.financeAccountList.querySelectorAll("input[type='checkbox']")) {
-      if (!checkbox.checked) {
-        continue;
-      }
-
-      if (checkbox.dataset.role === "netWorth") {
-        netWorthAccountIds.push(checkbox.dataset.accountId);
-      }
-
-      if (checkbox.dataset.role === "spending") {
-        spendingAccountIds.push(checkbox.dataset.accountId);
-      }
-    }
-
-    return {
-      netWorthAccountIds,
-      spendingAccountIds
-    };
-  }
-
-  async showFinanceConfigDialog({ accounts, financeConfig }) {
-    this.elements.financeAccountList.innerHTML = "";
-
-    for (const account of accounts) {
-      const row = document.createElement("div");
-      row.className = "finance-account-row";
-
-      const copy = document.createElement("div");
-      copy.className = "finance-account-copy";
-
-      const name = document.createElement("p");
-      name.className = "finance-account-name";
-      name.textContent = account.name;
-
-      const meta = document.createElement("p");
-      meta.className = "finance-account-meta";
-      meta.textContent = account.connectionName
-        ? `${account.connectionName} · Balance ${account.balance.toFixed(2)} ${account.currency}`
-        : `Balance ${account.balance.toFixed(2)} ${account.currency}`;
-
-      copy.append(name, meta);
-
-      const controls = document.createElement("div");
-      controls.className = "finance-account-controls";
-
-      const netWorthLabel = document.createElement("label");
-      netWorthLabel.className = "finance-role-toggle";
-      const netWorthCheckbox = document.createElement("input");
-      netWorthCheckbox.type = "checkbox";
-      netWorthCheckbox.dataset.role = "netWorth";
-      netWorthCheckbox.dataset.accountId = account.id;
-      netWorthCheckbox.checked = financeConfig.netWorthAccountIds.includes(account.id);
-      const netWorthText = document.createElement("span");
-      netWorthText.textContent = "Net Worth";
-      netWorthLabel.append(netWorthCheckbox, netWorthText);
-
-      const spendingLabel = document.createElement("label");
-      spendingLabel.className = "finance-role-toggle";
-      const spendingCheckbox = document.createElement("input");
-      spendingCheckbox.type = "checkbox";
-      spendingCheckbox.dataset.role = "spending";
-      spendingCheckbox.dataset.accountId = account.id;
-      spendingCheckbox.checked = financeConfig.spendingAccountIds.includes(account.id);
-      const spendingText = document.createElement("span");
-      spendingText.textContent = "Spending";
-      spendingLabel.append(spendingCheckbox, spendingText);
-
-      controls.append(netWorthLabel, spendingLabel);
-      row.append(copy, controls);
-      this.elements.financeAccountList.append(row);
-    }
-
-    return new Promise((resolve) => {
-      const cleanup = () => {
-        this.elements.financeCancelButton.removeEventListener("click", handleCancel);
-        this.elements.financeSaveButton.removeEventListener("click", handleSave);
-        this.elements.financeDialog.removeEventListener("cancel", handleCancel);
-      };
-
-      const handleCancel = () => {
-        cleanup();
-        this.elements.financeDialog.close("cancel");
-        resolve(null);
-      };
-
-      const handleSave = () => {
-        const config = this.buildFinanceConfigFromDialog();
-        cleanup();
-        this.elements.financeDialog.close("save");
-        resolve(config);
-      };
-
-      this.elements.financeCancelButton.addEventListener("click", handleCancel);
-      this.elements.financeSaveButton.addEventListener("click", handleSave);
-      this.elements.financeDialog.addEventListener("cancel", handleCancel, { once: true });
-      this.elements.financeDialog.showModal();
-    });
-  }
-
-  async buildFinanceSectionForDate(dateString) {
-    if (!this.state.financeConnected || !this.state.financeConfigured) {
-      return this.buildFinanceErrorText(
-        !this.state.financeConnected
-          ? this.state.financeStatusError || "Plaid is not connected."
-          : "Finance accounts are not configured."
-      );
-    }
-
-    try {
-      const result = await this.gateway.buildFinanceSection(dateString);
-      const warnings = Array.isArray(result?.warnings) ? result.warnings.filter(Boolean) : [];
-      const content = typeof result?.content === "string" ? result.content.trim() : "";
-
-      if (warnings.length) {
-        this.showToast(warnings[0]);
-      }
-
-      if (content) {
-        return content;
-      }
-
-      if (warnings.length) {
-        return this.buildFinanceErrorText(warnings.join(" "));
-      }
-
-      return this.buildFinanceErrorText("Plaid returned no finance data for this entry.");
-    } catch (error) {
-      const message = error.message || "Finance snapshot unavailable";
-      this.showToast(message);
-      return this.buildFinanceErrorText(message);
-    }
-  }
-
   async buildSleepSectionForDate(dateString) {
     if (!this.state.ouraConnected) {
       return this.buildSleepUnavailableText();
@@ -904,20 +508,6 @@ export class BillbookApp {
       await this.refreshOuraStatus();
       return this.buildSleepUnavailableText();
     }
-  }
-
-  async applyMonthlyNetWorthSnapshot(financeText, dateString) {
-    if (!financeText || /Finance Snapshot Error/i.test(financeText)) {
-      return financeText;
-    }
-
-    const existingMonthSnapshot = await this.findMonthlyNetWorthSnapshot(dateString);
-
-    const finalFinanceText = existingMonthSnapshot
-      ? this.replaceNetWorthBlock(financeText, existingMonthSnapshot.block)
-      : financeText;
-
-    return this.applySpendingImpact(finalFinanceText);
   }
 
   async ensureJournalDirectory() {
@@ -1274,73 +864,6 @@ export class BillbookApp {
     }
   }
 
-  async handleConnectPlaid() {
-    this.closeSidebarMenu();
-
-    try {
-      const status = await this.gateway.getFinanceStatus();
-
-      if (!status?.hasClientCredentials) {
-        const credentials = await this.showPlaidCredentialsDialog();
-
-        if (!credentials) {
-          return;
-        }
-
-        await this.gateway.savePlaidCredentials(credentials);
-      }
-
-      this.showToast("Opening Plaid in your browser");
-      const result = await this.gateway.connectPlaid();
-
-      if (result?.canceled) {
-        return;
-      }
-
-      await this.showFinanceWarnings(result?.warnings || []);
-      await this.refreshFinanceStatus();
-
-      if (!Array.isArray(result?.accounts) || !result.accounts.length) {
-        this.showToast("Plaid connected");
-        return;
-      }
-
-      const financeConfig = await this.showFinanceConfigDialog({
-        accounts: result.accounts,
-        financeConfig: result.financeConfig
-      });
-
-      if (financeConfig) {
-        await this.gateway.saveFinanceConfig(financeConfig);
-        await this.refreshFinanceStatus();
-        this.showToast("Plaid connected");
-        return;
-      }
-
-      this.showToast("Plaid connected");
-    } catch (error) {
-      await this.refreshFinanceStatus();
-      const action = await this.showConfirmDialog({
-        title: "Plaid unavailable",
-        body: error.message || "Billbook could not connect to Plaid.",
-        actions: [
-          { id: "credentials", label: "Edit Credentials", variant: "secondary" },
-          { id: "ok", label: "OK", variant: "primary" }
-        ]
-      });
-
-      if (action === "credentials") {
-        const credentials = await this.showPlaidCredentialsDialog();
-
-        if (credentials) {
-          await this.gateway.savePlaidCredentials(credentials);
-          await this.refreshFinanceStatus();
-          this.showToast("Plaid credentials saved");
-        }
-      }
-    }
-  }
-
   async handleConnectOura() {
     this.closeSidebarMenu();
 
@@ -1373,43 +896,6 @@ export class BillbookApp {
     }
   }
 
-  async handleConfigureFinance() {
-    this.closeSidebarMenu();
-
-    try {
-      const result = await this.gateway.listFinanceAccounts();
-      await this.showFinanceWarnings(result?.warnings || []);
-
-      if (!Array.isArray(result?.accounts) || !result.accounts.length) {
-        await this.showConfirmDialog({
-          title: "No finance accounts",
-          body: "Billbook could not find any connected Plaid accounts yet.",
-          actions: [{ id: "ok", label: "OK", variant: "primary" }]
-        });
-        return;
-      }
-
-      const financeConfig = await this.showFinanceConfigDialog({
-        accounts: result.accounts,
-        financeConfig: result.financeConfig
-      });
-
-      if (!financeConfig) {
-        return;
-      }
-
-      await this.gateway.saveFinanceConfig(financeConfig);
-      await this.refreshFinanceStatus();
-      this.showToast("Finance accounts saved");
-    } catch (error) {
-      await this.showConfirmDialog({
-        title: "Finance setup unavailable",
-        body: error.message || "Billbook could not load your finance accounts.",
-        actions: [{ id: "ok", label: "OK", variant: "primary" }]
-      });
-    }
-  }
-
   handleEditorInput(event) {
     this.applyInputToCurrentEntry(event.target);
 
@@ -1424,35 +910,15 @@ export class BillbookApp {
     this.scheduleDirtySync();
   }
 
-  getSectionAgeDays(dateString) {
-    if (!dateString) {
-      return 0;
-    }
-
-    const entryDate = parseLocalDate(dateString);
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
-
-    if (Number.isNaN(entryDate.getTime())) {
-      return 0;
-    }
-
-    return Math.max(0, Math.floor((today.getTime() - entryDate.getTime()) / 86400000));
-  }
-
-  async confirmGeneratedSectionRefresh(sectionKey, dateString) {
+  async confirmGeneratedSectionRefresh(sectionKey) {
     const existingContent = this.elements.sectionInputs[sectionKey]?.value.trim();
 
     if (!existingContent) {
       return true;
     }
 
-    const label = sectionKey === "finances" ? "finances" : "sleep";
-    const isOldFinanceSnapshot =
-      sectionKey === "finances" && this.getSectionAgeDays(dateString) >= 30;
-    const body = isOldFinanceSnapshot
-      ? "This will replace existing finance text. This entry is 30+ days old, and Chase or Plaid may not return the same pending transactions anymore."
-      : `This will replace the current ${label} text for this entry.`;
+    const label = "sleep";
+    const body = `This will replace the current ${label} text for this entry.`;
     const action = await this.showConfirmDialog({
       title: `Replace ${label}?`,
       body,
@@ -1466,7 +932,7 @@ export class BillbookApp {
   }
 
   async handleRefreshGeneratedSection(sectionKey) {
-    if (!this.state.currentEntry || !["finances", "sleep"].includes(sectionKey)) {
+    if (!this.state.currentEntry || sectionKey !== "sleep") {
       return;
     }
 
@@ -1478,10 +944,7 @@ export class BillbookApp {
       this.syncDateDisplay();
     }
 
-    const canReplace = await this.confirmGeneratedSectionRefresh(
-      sectionKey,
-      this.state.currentEntry.date
-    );
+    const canReplace = await this.confirmGeneratedSectionRefresh(sectionKey);
 
     if (!canReplace) {
       return;
@@ -1621,11 +1084,7 @@ export class BillbookApp {
       event.stopPropagation();
       this.toggleSidebarMenu();
     });
-    this.elements.connectPlaidButton.addEventListener("click", async () => this.handleConnectPlaid());
     this.elements.connectOuraButton.addEventListener("click", async () => this.handleConnectOura());
-    this.elements.configureFinanceButton.addEventListener("click", async () =>
-      this.handleConfigureFinance()
-    );
     this.elements.toggleAutoConnectButton.addEventListener("click", async () =>
       this.handleToggleAutoConnect()
     );
@@ -1726,13 +1185,6 @@ export class BillbookApp {
     const settings = await this.gateway.loadSettings();
     this.state.journalDirectory = settings.journalDirectory || "";
     this.state.journalDirectoryMissing = Boolean(settings.journalDirectoryMissing);
-    this.state.financeConfigured = Boolean(
-      settings.finance?.netWorthAccountIds?.length || settings.finance?.spendingAccountIds?.length
-    );
-    this.state.financeConnected = Boolean(
-      settings.integrations?.plaidConnectedHint
-        || settings.integrations?.simplefinConnectedHint
-    );
     this.state.ouraConnected = Boolean(settings.integrations?.ouraConnectedHint);
     this.state.autoConnectIntegrationsOnStartup =
       settings.integrations?.autoConnectOnStartup !== false;

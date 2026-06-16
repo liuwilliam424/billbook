@@ -97,8 +97,6 @@ Examples:
   Start in `electron/`, then expose it through `journal-gateway.js`.
 - Change the daily prompt structure:
   Update `prompts.js`, then adjust the journal store serialization and editor markup together.
-- Add or change finance setup flows:
-  Put Electron/network calls behind `journal-gateway.js`, then orchestrate the UI flow in `app-controller.js`.
 - Add a new editor banner or visual state:
   Put rendering in `render.js`, with any derived mode logic in `view-state.js`.
 - Add a new sidebar grouping rule:

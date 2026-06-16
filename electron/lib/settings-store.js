@@ -4,12 +4,7 @@ const fsp = require("node:fs/promises");
 function createDefaultSettings() {
   return {
     journalDirectory: "",
-    finance: {
-      netWorthAccountIds: [],
-      spendingAccountIds: []
-    },
     integrations: {
-      plaidConnectedHint: false,
       ouraConnectedHint: false,
       autoConnectOnStartup: true
     },
@@ -21,9 +16,6 @@ function createDefaultSettings() {
 
 function normalizeSettings(settingsLike = {}) {
   const defaults = createDefaultSettings();
-  const finance = settingsLike.finance && typeof settingsLike.finance === "object"
-    ? settingsLike.finance
-    : {};
   const integrations = settingsLike.integrations && typeof settingsLike.integrations === "object"
     ? settingsLike.integrations
     : {};
@@ -35,29 +27,14 @@ function normalizeSettings(settingsLike = {}) {
     : defaults.integrations.autoConnectOnStartup;
 
   return {
-    ...defaults,
-    ...settingsLike,
-    finance: {
-      ...defaults.finance,
-      ...finance,
-      netWorthAccountIds: Array.isArray(finance.netWorthAccountIds)
-        ? finance.netWorthAccountIds.filter((value) => typeof value === "string" && value)
-        : [],
-      spendingAccountIds: Array.isArray(finance.spendingAccountIds)
-        ? finance.spendingAccountIds.filter((value) => typeof value === "string" && value)
-        : []
-    },
+    journalDirectory: typeof settingsLike.journalDirectory === "string"
+      ? settingsLike.journalDirectory
+      : defaults.journalDirectory,
     integrations: {
-      ...defaults.integrations,
-      ...integrations,
-      plaidConnectedHint: Boolean(integrations.plaidConnectedHint),
-      simplefinConnectedHint: Boolean(integrations.simplefinConnectedHint),
       ouraConnectedHint: Boolean(integrations.ouraConnectedHint),
       autoConnectOnStartup
     },
     security: {
-      ...defaults.security,
-      ...security,
       requireTouchIDOnLaunch: Boolean(security.requireTouchIDOnLaunch)
     }
   };
